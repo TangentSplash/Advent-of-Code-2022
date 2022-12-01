@@ -44,10 +44,18 @@ public class MaxCalories {
             {
                 maxCalories=currentCalories;
             }
-
         }
 
         input.close();
         System.out.println("The maximum number of calories an Elf has is "+maxCalories);
+
+        Collections.sort(Elves, new SortByCalories());
+
+        int topThreeElvesCalories=0;
+        for (int i=0;i<3;i++)
+        {
+            topThreeElvesCalories+=Elves.get(i).getCalories();
+        }
+        System.out.println("The calories of the combined top three elves are "+topThreeElvesCalories);
     }
   }
