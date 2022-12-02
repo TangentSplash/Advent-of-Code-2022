@@ -7,6 +7,7 @@ import java.util.*;
 
 public class RockPaperScissors {
   
+    private static boolean part1=false;
     public static void main(String[] args) throws Exception
     {
         File file = new File("Day 2\\input.txt");
@@ -20,8 +21,15 @@ public class RockPaperScissors {
         {
             round=input.nextLine();
             opponent.moveChosen(round.charAt(0));
-            me.moveChosen(round.charAt(2));
-            me.compareMoves(opponent);
+            if (part1)
+            {
+                me.moveChosen(round.charAt(2));
+                me.compareMoves(opponent);
+            }
+            else
+            {
+                me.chooseMove(round.charAt(2), opponent.getMoveInt());
+            }
         }
 
         input.close();

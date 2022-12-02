@@ -38,14 +38,13 @@ public class Player {
     {
         int myMove;
         int opponentMove;
-        Move opponentM=opponent.getMove();
         boolean iWin=false;
         boolean draw=false;
 
         myMove=move.toInt(move);
-        opponentMove=opponentM.toInt(opponentM);
+        opponentMove=opponent.getMoveInt();
 
-        if (opponentM==move)
+        if (opponentMove==myMove)
         {
             draw=true;
         }
@@ -62,9 +61,33 @@ public class Player {
         opponent.addScore(!iWin,draw,opponentMove);
     }
 
-    private Move getMove()
+    public void chooseMove(char outcome,int opponentMoveNum)
     {
-        return move;
+        boolean iWin=false;
+        boolean draw=false;
+        int myMove=-1;
+        switch (outcome) {
+            case 'X':
+                myMove=opponentMoveNum-1;
+                break;
+
+            case 'Y':
+                myMove=opponentMoveNum;
+                draw=true;
+                break;
+
+            case 'Z':
+                myMove=opponentMoveNum+1;
+                iWin=true;
+                break;
+                
+            default:
+                System.out.println("Outcome "+ outcome+ " not recognised");
+                break;
+        }
+        myMove=Math.floorMod(myMove, 3);
+        addScore(iWin, draw, myMove);
+
     }
 
     private void addScore(boolean iWin, boolean draw, int myMoveScore)
@@ -86,5 +109,10 @@ public class Player {
     public int getScore()
     {
         return score;
+    }
+
+    public int getMoveInt()
+    {
+        return move.toInt(move);
     }
 }
