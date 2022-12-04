@@ -12,9 +12,14 @@ public class Group {
         section2=new IDSection(IDStrings[1]);       
     }
 
-    public boolean compare()
+    public boolean fullyContains()
     {
-        return section1.compare(section2);
+        return section1.fullyContains(section2);
+    }
+
+    public boolean someOverlap()
+    {
+        return section1.someOverlap(section2);
     }
     
 }

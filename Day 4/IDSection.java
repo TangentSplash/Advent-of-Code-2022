@@ -16,7 +16,7 @@ public class IDSection
         }
     }
 
-    public boolean compare(IDSection other)
+    public boolean fullyContains(IDSection other)
     {
         boolean contained;
         if(Math.min(minID, other.minID)==minID)
@@ -33,5 +33,10 @@ public class IDSection
             contained=(Math.max(maxID, other.maxID)==other.maxID);
         }
         return contained;
+    }
+
+    public boolean someOverlap(IDSection other)
+    {
+        return (maxID>=other.minID && minID<=other.minID) || (other.maxID>=minID&& other.minID<=maxID);
     }
 }
