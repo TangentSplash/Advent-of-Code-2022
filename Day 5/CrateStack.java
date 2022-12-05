@@ -26,13 +26,19 @@ public class CrateStack{
         return popped;
     }
 
-    public void addAll(Stack<Crate> newCrates)
+    public void addAllOneAtATime(Stack<Crate> newCrates)
     {
         for (Crate crate : newCrates) {
             stack.push(crate);
-            //stack.addFirst(crate);
         }
-        //stack.addAll(newCrates);
+    }
+
+    public void addAllAtOnce(Stack<Crate> newCrates)
+    {
+        for (int i=newCrates.size()-1;i>=0;i--)
+        {
+            stack.add(newCrates.remove(i));
+        }
     }
 
     public char getTopChar()

@@ -1,9 +1,8 @@
 /* Advent of Code 2022
- * Day 5 Part 1
+ * Day 5 Part 2
  */
 
 import java.io.File;
-//import java.nio.channels.ReadPendingException;
 import java.util.*;
 
 public class CrateStacks {
@@ -13,8 +12,11 @@ public class CrateStacks {
 
     private CrateStack[] Stacks;
 
+    boolean part1;
+
     public CrateStacks() throws Exception
     {
+        part1=false;
         File file = new File("Day 5\\input.txt");
         Scanner input = new Scanner(file);
 
@@ -46,7 +48,7 @@ public class CrateStacks {
         input.close();
 
         String finalPosition=getFinalPosition();
-        System.out.println("The final postion of the boxes is " +finalPosition);        
+        System.out.println("The inital prediction for the final postion of the boxes was " +finalPosition);        
     }
 
     private void interpretStacks(String input)
@@ -73,7 +75,14 @@ public class CrateStacks {
             input.next();               //to
             int to=input.nextInt()-1;
 
-            Stacks[to].addAll(Stacks[from].pop(number));
+            if (part1)
+            {
+                Stacks[to].addAllOneAtATime(Stacks[from].pop(number));
+            }
+            else
+            {
+                Stacks[to].addAllAtOnce(Stacks[from].pop(number));
+            }
         }
     }
 
