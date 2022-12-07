@@ -84,10 +84,8 @@ public class Terminal {
             }
 
         }
-
-        
-
         System.out.println("The total size of directories less than max is " + totalSize);
+        System.out.println("The smallest single directory that could be removed to frre up the nessicarry space is "+minSizeBigger);
     }
 
     private void changeDirectory(String argument)
