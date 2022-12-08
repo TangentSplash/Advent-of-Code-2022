@@ -1,5 +1,5 @@
 /* Advent of Code 2022
- * Day 7 Part 1
+ * Day 7 Part 2
  */
 
 import java.io.File;

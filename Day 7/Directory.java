@@ -24,7 +24,7 @@ public class Directory extends Item{
     public Directory findChildDirectory(String name)
     {
         for (Item item : subItems) {
-            if (item instanceof Directory)  //TODO Does this work properly?
+            if (item instanceof Directory) 
             {
                 if (item.getName().equals(name))
                 {
