@@ -1,5 +1,5 @@
 /* Advent of Code 2022
-* Day 8 Part 1
+* Day 8 Part 2
 */
 
 import java.nio.file.*;
@@ -39,17 +39,34 @@ public class TreeHouse {
         }
 
         int numberOfVisableTrees=0;
+        int y=0;
         for (Tree[] trees : treeGrid) 
         {
+            int x=0;
             for (Tree tree : trees) 
             {
                 if(tree.isVisable())
                 {
                     numberOfVisableTrees++;
                 }
+                treesSeen(x, y);
+                x++;
+            }
+            y++;
+        }
+
+        int bestScenicScore=0;
+        for (Tree[] trees : treeGrid) 
+        {
+            for (Tree tree : trees) 
+            {
+                bestScenicScore=Math.max(bestScenicScore, tree.getScenicScore());
             }
         }
+
+
         System.out.println("The number of visable trees is "+ numberOfVisableTrees);
+        System.out.println("The best scenic score is "+ bestScenicScore);
     }
 
     private void searchSection(int direction)
@@ -86,9 +103,57 @@ public class TreeHouse {
         }
     }
 
-    private void treesSeen(int x,int y)
+    private void treesSeen(int currentTreeX,int currentTreeY)
     {
-        
+        int[] visableTrees=new int[4];
+        for(int i=0;i<4;i++)
+        {
+            visableTrees[i]=checkDirection(currentTreeX, currentTreeY, i);
+        }
+        treeGrid[currentTreeY][currentTreeX].setTreesVisable(visableTrees);
+    }
+
+    private int checkDirection(int currentTreeX,int currentTreeY, int direction)
+    {
+        int currentTreeHeight=treeGrid[currentTreeY][currentTreeX].getHeight();
+        int treesVisable=0;
+
+        int x=currentTreeX;
+        int y=currentTreeY;
+        int i=1;
+        while(x<gridWidth && x>=0 && y<gridHeight && y>=0)   
+        {
+            switch (direction)
+            {
+                case TOP:
+                    x=currentTreeX;
+                    y=currentTreeY-i;
+                    break;
+                case BOTTOM:
+                    x=currentTreeX;
+                    y=currentTreeY+i;
+                    break;
+                case LEFT:
+                    x=currentTreeX-i;
+                    y=currentTreeY;
+                    break;
+                case RIGHT:
+                    x=currentTreeX+i;
+                    y=currentTreeY;
+            }
+
+            if (x>=gridWidth || x<0 || y>=gridHeight || y<0)
+            {
+                return treesVisable;
+            }
+            treesVisable++;
+            if(treeGrid[y][x].getHeight()>=currentTreeHeight)
+            {
+                return treesVisable;
+            }
+            i++;
+        }
+        return treesVisable;
     }
     
 }

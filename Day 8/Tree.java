@@ -8,6 +8,8 @@ public class Tree {
     private boolean visableRight;*/
     private boolean visable;
 
+    private int[] visableTrees;
+
     public Tree(int height)
     {
         this.height=height;
@@ -35,5 +37,20 @@ public class Tree {
         {
             return maxHeight;
         }
+    }
+
+    public void setTreesVisable(int[] treesVisable)
+    {
+        visableTrees=treesVisable;
+    }
+
+    public int getScenicScore()
+    {
+        int scenicScore=1;;
+        for (int trees : visableTrees) 
+        {
+            scenicScore*=trees;
+        }
+        return scenicScore;
     }
 }
