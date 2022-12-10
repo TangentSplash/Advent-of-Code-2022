@@ -1,5 +1,5 @@
 /* Advent of Code 2022
-* Day 10 Part 1
+* Day 10 Part 2
 */
 
 import java.io.File;
@@ -14,6 +14,7 @@ public class CathodeRayTube {
         Scanner input = new Scanner(inputFile);
 
         String line;
+        
 
         int addNextTime=0;
 
@@ -22,16 +23,19 @@ public class CathodeRayTube {
         int cycle=1;
 
         int signalStrength=0;
+        CRT crt=new CRT();
 
         Pattern addX = Pattern.compile("addx");
 
         boolean justRun=false;
         
+        crt.checkCRTPixel(cycle,X);
         while (input.hasNextLine())
         {
             line=input.nextLine();
 
             Matcher addXMatcher = addX.matcher(line);
+            
             
             if (line.equals("noop"))
             {
@@ -42,7 +46,10 @@ public class CathodeRayTube {
                 String[] instructions=line.split("addx ");
                 addNextTime=Integer.parseInt(instructions[1]);
                 cycle++;
+                crt.checkCRTPixel(Math.floorMod(cycle,40),X);
             }
+            
+            
 
             if((cycle==20 || Math.floorMod(cycle, 40)==20) && cycle<=220 && !justRun)
             {
@@ -54,6 +61,9 @@ public class CathodeRayTube {
             addNextTime=0;
             
             cycle++;
+
+            crt.checkCRTPixel(Math.floorMod(cycle,40),X);
+
             if((cycle==20 || Math.floorMod(cycle, 40)==20) && cycle<=220)
             {
                 signalStrength+=(cycle*X);
@@ -65,5 +75,6 @@ public class CathodeRayTube {
         input.close();
 
         System.out.println("The Signal Strength is "+signalStrength);
+        System.out.println(crt.getCRT());
     }   
 }
