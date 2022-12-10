@@ -42,9 +42,24 @@ public class RopeSegment {
         int xDiffAbs=Math.abs(xDiff);
 
         //double euclideanDistSquared= (Math.pow(yDiffAbs, 2)+Math.pow(xDiffAbs, 2));
-        int dist=yDiffAbs+xDiffAbs;
+        
+        //int dist=yDiffAbs+xDiffAbs;
 
-        if(yDiffAbs>1 || dist>=3)
+        if (xDiffAbs>1 || yDiffAbs>1)
+        {
+            if (yDiffAbs!=0)
+            {
+                int yDirection=yDiff/yDiffAbs;
+                y+=yDirection;
+            }
+            if (xDiffAbs!=0)
+            {
+                int xDirection=xDiff/xDiffAbs;
+                x+=xDirection;
+            }
+        }
+
+        /*if(yDiffAbs>1 || dist>=3)
         {
             int yDirection=yDiff/yDiffAbs;
             y+=yDirection;
@@ -53,7 +68,7 @@ public class RopeSegment {
         {
             int xDirection=xDiff/xDiffAbs;
             x+=xDirection;
-        }
+        }*/
     }
 
     public int getX()

@@ -2,14 +2,18 @@
 * Day 9 Part 1
 */
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.util.*;
 
 public class Rope {
 
+public static final int GRID_SIZE=6;
+
 public Rope() throws Exception
-    {
-        File inputFile = new File("Day 9\\input.txt");
+    {   
+        File inputFile = new File("Day 9\\inputtest4.txt");
         Scanner input = new Scanner(inputFile);
 
         String line;
@@ -18,6 +22,17 @@ public Rope() throws Exception
 
         Set<String> locationCodes=new TreeSet<>();
 
+        char[][] map=new char[GRID_SIZE][GRID_SIZE];
+        for (int i=0;i<GRID_SIZE;i++) 
+        {
+            for (int j=0;j<GRID_SIZE;j++)
+            {
+                map[i][j]='.';
+            }
+            
+        }
+
+        int hits=0;
         //locationCodes.add(0);
         while (input.hasNextLine())
         {
@@ -26,11 +41,30 @@ public Rope() throws Exception
             for (int i=0;i<amount;i++)
             {
                 head.move(line);
+                if (map[head.getY()+(GRID_SIZE/2)][head.getX()+(GRID_SIZE/2)]=='.')
+                {
+                    map[head.getY()+(GRID_SIZE/2)][head.getX()+(GRID_SIZE/2)]='*';
+                }
                 tail.move(head);
-                locationCodes.add(tail.getLocationID());
+                if(locationCodes.add(tail.getLocationID()))
+                {
+                    hits++;
+                }
+                map[tail.getY()+(GRID_SIZE/2)][tail.getX()+(GRID_SIZE/2)]='#';
             }
         }
         input.close();
+        
+        BufferedWriter output = new BufferedWriter(new FileWriter("Day 9\\output2.txt"));
+
+        for (int j=GRID_SIZE-1;j>=0;j--) 
+        {
+            output.write(map[j]);
+            output.write("\n");
+            //System.out.println(map[j]);            
+        }
+
+        output.close();
 
         int uniqueTailLocations=locationCodes.size();
 
