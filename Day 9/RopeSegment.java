@@ -8,9 +8,9 @@ public class RopeSegment {
         y=0;
     }
 
-    public void move(String instruction)
+    public void move(String direction)
     {
-        switch(instruction.charAt(0))
+        switch(direction.charAt(0))
         {
             case 'U':
                 y++;
@@ -25,7 +25,7 @@ public class RopeSegment {
                 x--;
                 break;
             default:
-                System.out.println("Instruction not understood: "+instruction);
+                System.out.println("Instruction not understood: "+direction);
                 break;
         }
     }

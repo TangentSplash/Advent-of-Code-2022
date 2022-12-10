@@ -9,11 +9,11 @@ import java.util.*;
 
 public class Rope {
 
-public static final int GRID_SIZE=6;
+public static final int GRID_SIZE=500;
 
 public Rope() throws Exception
     {   
-        File inputFile = new File("Day 9\\inputtest4.txt");
+        File inputFile = new File("Day 9\\input.txt");
         Scanner input = new Scanner(inputFile);
 
         String line;
@@ -37,10 +37,11 @@ public Rope() throws Exception
         while (input.hasNextLine())
         {
             line=input.nextLine();
-            int amount=Character.getNumericValue(line.charAt(2));
+            String[] inputInfo= line.split(" ");
+            int amount=Integer.parseInt(inputInfo[1]);
             for (int i=0;i<amount;i++)
             {
-                head.move(line);
+                head.move(inputInfo[0]);
                 if (map[head.getY()+(GRID_SIZE/2)][head.getX()+(GRID_SIZE/2)]=='.')
                 {
                     map[head.getY()+(GRID_SIZE/2)][head.getX()+(GRID_SIZE/2)]='*';
