@@ -1,5 +1,5 @@
 /* Advent of Code 2022
-* Day 11 Part 1
+* Day 11 Part 2
 */
 
 import java.io.File;
@@ -16,11 +16,21 @@ public class PiggyInTheMiddle {
     private static final String TRUE_STRING="If true: throw to monkey ";
     private static final String FALSE_STRING="If false: throw to monkey ";
 
-    private static final int RELIEF_FACTOR=3;
-    private static final int ROUNDS=20;
+    private static boolean PART_2=true;
 
     public static void main(String[] args) throws Exception
     {
+
+        int rounds=20;
+        int reliefFactor=3;
+        if(PART_2)
+        {
+            reliefFactor=1;
+            rounds=10000;
+        }
+
+        int LCM=1;
+
         File inputFile = new File("Day 11\\input.txt");
         Scanner input = new Scanner(inputFile);
 
@@ -36,7 +46,6 @@ public class PiggyInTheMiddle {
         Monkey currentMonkey=new Monkey(-1);
 
         List<Monkey> monkeys=new ArrayList<>();
-
 
         while (input.hasNextLine())
         {
@@ -73,6 +82,7 @@ public class PiggyInTheMiddle {
             {
                 int test=getNumber(line,TEST_STRING)[0];
                 currentMonkey.addTest(test);
+                LCM*=test;
             }
             else if(trueRegexMatcher.find())
             {
@@ -89,19 +99,24 @@ public class PiggyInTheMiddle {
                 System.out.println("Input \'"+line+"\'' not expected");
             }
         }
+        for (Monkey monkey : monkeys) {
+            monkey.setLCM(LCM);
+        }
 
         input.close();
 
-        for (int round=0;round<ROUNDS;round++)
+        int o;
+        for (int round=1;round<=rounds;round++)
         {
             for (Monkey monkey : monkeys) {
                 int numberOfItems=monkey.getNumberOfItems();
                 for(int i=0;i<numberOfItems;i++)
                 {
                     int worry=monkey.inspectItem();
-                    monkey.throwItem(worry/RELIEF_FACTOR,monkeys);
+                    monkey.throwItem(worry/reliefFactor,monkeys);
                 }
             }
+            o=0;
         }
 
         List<Integer> inspections=new ArrayList<>();
@@ -111,8 +126,9 @@ public class PiggyInTheMiddle {
 
         Collections.sort(inspections,Collections.reverseOrder());
 
-        int monkeyBusiness=inspections.get(0)*inspections.get(1);
-
+        long monkeyBusiness=(long)inspections.get(0)*(long)inspections.get(1);
+        System.out.println(inspections.get(0));
+        System.out.println(inspections.get(1));
         System.out.println("The monkey business is "+monkeyBusiness);
     }
 

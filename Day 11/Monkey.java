@@ -16,6 +16,8 @@ public class Monkey {
 
     private List<Integer> worryLevels;
 
+    private int LCM;
+
     public Monkey(int number)
     {
         this.number=number;
@@ -90,12 +92,15 @@ public class Monkey {
     {
         int worry=worryLevels.remove(0);
         numberOfInspections++;
-        return operation.operate(worry, operand.getValue(worry));
+        int newWorry=operation.operate(worry, operand.getValue(worry),LCM);
+        return newWorry;
     }
 
     public void throwItem(int worry,List<Monkey> monkeys)
     {
-        if( Math.floorMod(worry, test)==0)
+        //worry=worry % LCM;
+        
+        if( (worry % test)==0)
         {
             monkeys.get(nextMonkeyTrue).catchItem(worry);
         }
@@ -113,6 +118,16 @@ public class Monkey {
     public int getNumberOfInspection()
     {
         return numberOfInspections;
+    }
+
+    public int getTestNumber()
+    {
+        return test;
+    }
+
+    public void setLCM(int LCM)
+    {
+        this.LCM=LCM;
     }
     
 }
