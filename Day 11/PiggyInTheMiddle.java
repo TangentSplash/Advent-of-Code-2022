@@ -105,7 +105,7 @@ public class PiggyInTheMiddle {
 
         input.close();
 
-        int o;
+        int o=0;
         for (int round=1;round<=rounds;round++)
         {
             for (Monkey monkey : monkeys) {
@@ -118,6 +118,8 @@ public class PiggyInTheMiddle {
             }
             o=0;
         }
+
+        System.out.println(o);
 
         List<Integer> inspections=new ArrayList<>();
         for (Monkey monkey : monkeys) {
