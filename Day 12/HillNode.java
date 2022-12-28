@@ -10,7 +10,6 @@ public class HillNode implements Comparable<HillNode>
     private int score; 
     private int distToHere;
     private HillNode previosNode;
-    private boolean explored;
 
     private boolean atEnd;
 
@@ -25,16 +24,25 @@ public class HillNode implements Comparable<HillNode>
         this.height=height;
         this.distToHere=distToHere;
         this.previosNode=previosNode;
-        explored=false;
-        
-        int distToEndManhatten=Math.abs(x-PathFinding.endX)+Math.abs(y-PathFinding.endY);
-        heuristic=distToEndManhatten-heightDiff;
+        if (PathFinding.PART_ONE)
+        {
+            int distToEndManhatten=Math.abs(x-PathFinding.endX)+Math.abs(y-PathFinding.endY);
+            heuristic=distToEndManhatten-heightDiff;
+        }
+        else
+        {
+            heuristic=heightDiff;
+        }
         score=distToHere+heuristic;
         nextNodes=new ArrayList<HillNode>();
-        atEnd=height=='E';
+        atEnd=(height=='E' && PathFinding.PART_ONE)||(height=='a'&& !PathFinding.PART_ONE);
         if (height=='S')
         {
-            height='a';
+            this.height='a';
+        }
+        if (height=='E')
+        {
+            this.height='z';
         }
     }
 
@@ -44,23 +52,7 @@ public class HillNode implements Comparable<HillNode>
         newNode(x, y+1);
         newNode(x, y-1);
         newNode(x-1, y);
-        explored=true;
     }
-
-    public void sortNextNodes()
-    {
-        Collections.sort(nextNodes);
-    }
-
-    public HillNode findNextBest()
-    {
-        if (nextNodes.isEmpty())
-        {
-            return null;
-        }
-        return nextNodes.remove(0);
-    }
-
 
     private void newNode(int newX, int newY)
     {
@@ -85,7 +77,7 @@ public class HillNode implements Comparable<HillNode>
                 nextHeight='a';
             }
 
-            if(nextHeightNormalised<=height+CLIMBABLE_HEIGHT)  
+            if((PathFinding.PART_ONE && nextHeightNormalised<=height+CLIMBABLE_HEIGHT) || (!PathFinding.PART_ONE && nextHeightNormalised>=height-CLIMBABLE_HEIGHT))  
             {
                 nextNodes.add(new HillNode(newX, newY, nextHeight, distToHere+1,nextHeightNormalised-height,this));
             }
@@ -95,11 +87,6 @@ public class HillNode implements Comparable<HillNode>
     public int  compareTo(HillNode other)
     {
         return this.score-other.score;
-    }
-
-    public List<HillNode> conncetedNodes()
-    {
-        return nextNodes;
     }
 
     public List<Integer> getPos()
@@ -135,11 +122,6 @@ public class HillNode implements Comparable<HillNode>
     public boolean isStart()
     {
         return previosNode==null;
-    }
-
-    public boolean isExplored()
-    {
-        return explored;
     }
 
     public void updateNode(HillNode updated,int i)

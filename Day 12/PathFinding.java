@@ -5,9 +5,11 @@ import java.util.*;
 import java.io.File;
 
 public class PathFinding {
+    public static final boolean PART_ONE=false;
 
     public static final char START='S';
     public static final char END='E';
+
 
     public static int endX;
     public static int endY;
@@ -50,7 +52,15 @@ public class PathFinding {
 
         FileWriter output=createFile();
 
-        HillNode nextNode=new HillNode(startX, startY, 'a', 0, 0,null);
+        int initialPosX=startX;
+        int initialPosY=startY;
+        if (!PART_ONE)
+        {
+            initialPosX=endX;
+            initialPosY=endY;
+        }
+
+        HillNode nextNode=new HillNode(initialPosX, initialPosY, topography[initialPosY][initialPosX], 0, 0,null);
 
         do{
 
@@ -81,7 +91,7 @@ public class PathFinding {
             Collections.sort(openList);
 
             closedMap.put(nextNode.getPos(), nextNode);
-            writeMap(nextNode.getPos(), 'X');
+            writeMap(nextNode.getPos(), '\'');
 
             nextNode=openList.get(0);
             openMap.remove(nextNode.getPos());
