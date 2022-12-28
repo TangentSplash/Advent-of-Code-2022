@@ -27,7 +27,7 @@ public class HillNode implements Comparable<HillNode>
         this.previosNode=previosNode;
         explored=false;
         
-        int distToEndManhatten=Math.abs(x-A_Star.endX)+Math.abs(y-A_Star.endY);
+        int distToEndManhatten=Math.abs(x-PathFinding.endX)+Math.abs(y-PathFinding.endY);
         heuristic=distToEndManhatten-heightDiff;
         score=distToHere+heuristic;
         nextNodes=new ArrayList<HillNode>();
@@ -72,11 +72,11 @@ public class HillNode implements Comparable<HillNode>
             previousY=previosNode.y;
         }
 
-        if(newX>=0 && newX<A_Star.length && newY>=0 && newY<A_Star.width && (previosNode==null || !(previousX==newX && previousY==newY)))
+        if(newX>=0 && newX<PathFinding.length && newY>=0 && newY<PathFinding.width && (previosNode==null || !(previousX==newX && previousY==newY)))
         {
-            char nextHeight=A_Star.topography[newY][newX];
+            char nextHeight=PathFinding.topography[newY][newX];
             char nextHeightNormalised=nextHeight;
-            if(nextHeightNormalised==A_Star.END) 
+            if(nextHeightNormalised==PathFinding.END) 
             {
                 nextHeightNormalised='z';
             }
@@ -132,6 +132,11 @@ public class HillNode implements Comparable<HillNode>
         return atEnd;
     }
 
+    public boolean isStart()
+    {
+        return previosNode==null;
+    }
+
     public boolean isExplored()
     {
         return explored;
@@ -140,5 +145,10 @@ public class HillNode implements Comparable<HillNode>
     public void updateNode(HillNode updated,int i)
     {
         nextNodes.set(i, updated);
+    }
+
+    public List<HillNode> getNextNodes()
+    {
+        return nextNodes;
     }
 }
