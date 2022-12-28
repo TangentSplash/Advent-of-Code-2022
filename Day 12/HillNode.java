@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class HillNode
+public class HillNode implements Comparable<HillNode>
 {
 
     private int heuristic;
@@ -9,56 +9,136 @@ public class HillNode
     private char height;
     private int score; 
     private int distToHere;
+    private HillNode previosNode;
+    private boolean explored;
+
+    private boolean atEnd;
 
     private List<HillNode> nextNodes;
 
     private static final int CLIMBABLE_HEIGHT=1;
 
-    public HillNode(int x,int y, char height,int distToHere,int heightDiff)
+    public HillNode(int x,int y, char height,int distToHere,int heightDiff, HillNode previosNode)
     {
         this.x=x;
         this.y=y;
         this.height=height;
         this.distToHere=distToHere;
+        this.previosNode=previosNode;
+        explored=false;
+        
         int distToEndManhatten=Math.abs(x-A_Star.endX)+Math.abs(y-A_Star.endY);
-        heuristic=distToEndManhatten+heightDiff;
+        heuristic=distToEndManhatten-heightDiff;
         score=distToHere+heuristic;
-    }
-
-    public int compareTo(HillNode other)    //Int?
-    {
-        if(score>other.score)
+        nextNodes=new ArrayList<HillNode>();
+        atEnd=height=='E';
+        if (height=='S')
         {
-            return 1;
+            height='a';
         }
-        return 0;
     }
 
-    public HillNode findNextBest()
+    public void explore()
     {
         newNode(x+1, y);
         newNode(x, y+1);
         newNode(x, y-1);
         newNode(x-1, y);
+        explored=true;
+    }
 
-        nextNodes.sort();
+    public void sortNextNodes()
+    {
+        Collections.sort(nextNodes);
+    }
+
+    public HillNode findNextBest()
+    {
+        if (nextNodes.isEmpty())
+        {
+            return null;
+        }
+        return nextNodes.remove(0);
     }
 
 
     private void newNode(int newX, int newY)
     {
-        if(newX>=0 && newX<A_Star.length && newY>=0 && newY<A_Star.width)
+        int previousX=0;
+        int previousY=0;
+        if (previosNode!=null)
+        {
+            previousX=previosNode.x;
+            previousY=previosNode.y;
+        }
+
+        if(newX>=0 && newX<A_Star.length && newY>=0 && newY<A_Star.width && (previosNode==null || !(previousX==newX && previousY==newY)))
         {
             char nextHeight=A_Star.topography[newY][newX];
-            if(nextHeight==A_Star.END) 
+            char nextHeightNormalised=nextHeight;
+            if(nextHeightNormalised==A_Star.END) 
             {
-                nextHeight='z';
+                nextHeightNormalised='z';
+            }
+            if (nextHeightNormalised=='S')
+            {
+                nextHeight='a';
             }
 
-            if(nextHeight<=height+CLIMBABLE_HEIGHT)  
+            if(nextHeightNormalised<=height+CLIMBABLE_HEIGHT)  
             {
-                nextNodes.add(new HillNode(newX, newY, nextHeight, distToHere+1,nextHeight-height));
+                nextNodes.add(new HillNode(newX, newY, nextHeight, distToHere+1,nextHeightNormalised-height,this));
             }
         }
+    }
+
+    public int  compareTo(HillNode other)
+    {
+        return this.score-other.score;
+    }
+
+    public List<HillNode> conncetedNodes()
+    {
+        return nextNodes;
+    }
+
+    public List<Integer> getPos()
+    {
+        return new ArrayList<Integer>(Arrays.asList(x,y));
+    }
+
+    public void setBestDistance(HillNode newPath)
+    {
+        int newDist=newPath.getDistToHere();
+        if (newDist<distToHere)
+        {
+            distToHere=newDist;
+            previosNode=newPath.getPreviousNode();
+        }
+    }
+
+    public int getDistToHere()
+    {
+        return distToHere;
+    }
+
+    public HillNode getPreviousNode()
+    {
+        return previosNode;
+    }
+
+    public boolean isEnd()
+    {
+        return atEnd;
+    }
+
+    public boolean isExplored()
+    {
+        return explored;
+    }
+
+    public void updateNode(HillNode updated,int i)
+    {
+        nextNodes.set(i, updated);
     }
 }

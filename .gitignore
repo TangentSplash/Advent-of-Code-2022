@@ -23,3 +23,5 @@
 hs_err_pid*
 
 *.txt
+devcontainer.json
+.DS_Store
