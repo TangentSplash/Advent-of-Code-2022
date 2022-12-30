@@ -84,7 +84,7 @@ public class HillNode implements Comparable<HillNode>
         }
     }
 
-    public int  compareTo(HillNode other)
+    public int compareTo(HillNode other)
     {
         return this.score-other.score;
     }
