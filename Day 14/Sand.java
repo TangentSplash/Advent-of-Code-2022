@@ -6,8 +6,11 @@ public class Sand {
     private int y;
     private char[][] caveSlice;
 
+    private boolean isInBounds;
+
     public Sand(char[][] caveSlice)
     {
+        isInBounds=true;
         this.caveSlice=caveSlice;
         x=DROP_X;
         y=DROP_Y;
@@ -29,24 +32,27 @@ public class Sand {
                 dropping=tryDrop(newX, newY);
                 if(dropping)
                 {
-                    if (!isInBounds(newX, newY))
-                    {
-                        return true;    //Fell out of bounds
-                    }
+                    isInBounds(newX, newY);
                     break;
                 }
             }
         }
-        return false;   //Came to rest in bounds  
+        return (x==DROP_X && y==DROP_Y);    //Came to rest at start? 
     }
 
     private boolean isInBounds(int newX,int newY)
     {
-        return newX>0 && newX<=Cave.furthestPoint && newY>0 && newY<Cave.lowestPoint;
+        isInBounds=newX>0 && newX<=Cave.furthestPoint && newY>0 && newY<Cave.lowestPoint;
+        return isInBounds;
     }
+
 
     private boolean tryDrop(int newX,int newY)
     {
+        if(newY==Cave.floorHeight)
+        {
+            return false;
+        }
         boolean canDropHere=caveSlice[newY][newX]=='\0';
         if(canDropHere)
         {
@@ -64,5 +70,10 @@ public class Sand {
     public int getY()
     {
         return y;
+    }
+
+    public boolean getBounds()
+    {
+        return isInBounds;
     }
 }

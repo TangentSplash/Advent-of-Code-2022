@@ -4,14 +4,17 @@ import java.util.*;
 import java.io.File;
 
 /* Advent of Code 2022
-* Day 14 Part 1
+* Day 14 Part 2
 */
 
 public class Cave 
 {
-    private char[][] caveSlice;
     public static int lowestPoint;
     public static int furthestPoint;
+    private final int FLOOR_DISTANCE=2;
+    public static int floorHeight;
+    
+    private char[][] caveSlice;
     private Coordinate[] coordinates;
 
     private final Character ROCK='#';
@@ -35,28 +38,36 @@ public class Cave
         lowestPoint=Collections.max(coordinates[1]);    //y
         furthestPoint=Math.max(Collections.max(coordinates[0]),Math.abs(Collections.min(coordinates[0])));  //Greatest x, could be negative due to encoding...
 
-        caveSlice=new char[lowestPoint+1][furthestPoint+1];
+        floorHeight=lowestPoint+FLOOR_DISTANCE;
+        
+        caveSlice=new char[floorHeight+1][furthestPoint+1000];   //Expand horizontally a bit to allow for sand that falls to the side
 
         createLines();
 
         input.close();
 
 
-        boolean outOfBounds=false;
+        boolean stopped=false;
+        int voidSandUnits=-1;
         int sandUnits=0;
         caveSlice[Sand.DROP_Y][Sand.DROP_X]=START;
 
-        while (!outOfBounds)
+        while (!stopped)
         {
             Sand sand=new Sand(caveSlice);
-            outOfBounds=sand.drop();
-            if(!outOfBounds)
+            stopped=sand.drop();
+            int y=sand.getY();
+            int x=sand.getX();
+            caveSlice[y][x]=SAND;
+            if(!stopped)
             {
-                int y=sand.getY();
-                int x=sand.getX();
-                caveSlice[y][x]=SAND;
-                sandUnits++;
+                if(voidSandUnits==-1 && !sand.getBounds())  
+                {
+                    voidSandUnits=sandUnits;    //Answer for part 1
+                    stopped=false;
+                }
             }
+            sandUnits++;
         }
 
         FileWriter output=createFile();
@@ -64,7 +75,8 @@ public class Cave
 
         output.close();
 
-        System.out.println(sandUnits + " units of sand were dropped");
+        System.out.println(voidSandUnits + " units of sand were dropped before reaching the void");
+        System.out.println(sandUnits + " of sand were dropped before the source was blocked");
     }
 
     private void interpretInput(Scanner input)
