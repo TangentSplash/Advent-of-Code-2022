@@ -8,13 +8,12 @@ import java.io.File;
 public class Beacons 
 {
     private final int Y_LINE=2000000;
-    private final int BOUNDING_BOX=4000000;
+    public static final int BOUNDING_BOX=4000000;
 
     private Set<Location> sensorLocations;
     private Set<Location> beaconLocations;
     private Set<Location> noBeaconsOnLine;
 
-    //Highest x 8447
  
     public Beacons() throws Exception
     {
@@ -32,9 +31,10 @@ public class Beacons
         int beaconCannot=noBeaconsOnLine.size();
         System.out.println("There are "+beaconCannot+" locations at y="+Y_LINE+", where beacons cannot be");
 
-        Location distressSignal=distressSignal();
+        borderLocations();
+        /*Location distressSignal=distressSignal();
         int tuningFrequency=(distressSignal.getX()*BOUNDING_BOX)+distressSignal.getY();
-        System.out.println("The tuning frequency is "+tuningFrequency);
+        System.out.println("The tuning frequency is "+tuningFrequency);*/
     }
 
     private void interpretInput(Scanner input)
@@ -88,6 +88,42 @@ public class Beacons
                 }
             }
         }
+    }
+
+    private Location borderLocations()
+    {
+        
+        List<Location> sensorList=new ArrayList<Location>(sensorLocations);
+        Set<Location> bordersFound=new HashSet<Location>();
+        sensorList.sort(new RadiusComparator());
+        Set<Location> borderAtLeast2=new HashSet<Location>();
+        for (Location sensor : sensorList) 
+        {
+            List<Location> thisSensorBorder=sensor.borderLocations();
+            List<Location> otherBorders=new ArrayList<>(bordersFound);
+            otherBorders.retainAll(thisSensorBorder);
+            borderAtLeast2.addAll(otherBorders);
+            bordersFound.addAll(thisSensorBorder);
+            System.out.println("Found Borders of "+sensorList.indexOf(sensor));
+        }
+
+        boolean here=true;
+        for (Location thisBorder : borderAtLeast2) 
+        {
+            for (Location sensor : sensorList) 
+            {
+                if(sensor.distance(thisBorder)<=sensor.getMaxDistance())
+                {
+                    here=false;
+                    break;
+                }
+            }
+            if(here)
+            {
+                return thisBorder;
+            }
+        }
+        return null;
     }
 
     private Location distressSignal()
