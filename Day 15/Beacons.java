@@ -31,10 +31,14 @@ public class Beacons
         int beaconCannot=noBeaconsOnLine.size();
         System.out.println("There are "+beaconCannot+" locations at y="+Y_LINE+", where beacons cannot be");
 
-        borderLocations();
-        /*Location distressSignal=distressSignal();
-        int tuningFrequency=(distressSignal.getX()*BOUNDING_BOX)+distressSignal.getY();
-        System.out.println("The tuning frequency is "+tuningFrequency);*/
+        Location distressSignal=borderLocations();
+        int x=distressSignal.getX();
+        int y=distressSignal.getY();
+        System.out.println("");
+        System.out.println("x="+x+", y="+y);
+        int xAns=x*4;
+        System.out.println("Answer is "+xAns+y);
+        System.out.println("Go to https://www.wolframalpha.com/input?i=%28x*4000000%29%2By to verify the result");
     }
 
     private void interpretInput(Scanner input)
@@ -92,56 +96,20 @@ public class Beacons
 
     private Location borderLocations()
     {
-        
+        boolean here;
         List<Location> sensorList=new ArrayList<Location>(sensorLocations);
-        Set<Location> bordersFound=new HashSet<Location>();
         sensorList.sort(new RadiusComparator());
-        Set<Location> borderAtLeast2=new HashSet<Location>();
         for (Location sensor : sensorList) 
         {
+            List<Location> otherSensors=new ArrayList<>(sensorList);
+            otherSensors.remove(sensor);
             List<Location> thisSensorBorder=sensor.borderLocations();
-            List<Location> otherBorders=new ArrayList<>(bordersFound);
-            otherBorders.retainAll(thisSensorBorder);
-            borderAtLeast2.addAll(otherBorders);
-            bordersFound.addAll(thisSensorBorder);
-            System.out.println("Found Borders of "+sensorList.indexOf(sensor));
-        }
-
-        boolean here=true;
-        for (Location thisBorder : borderAtLeast2) 
-        {
-            for (Location sensor : sensorList) 
-            {
-                if(sensor.distance(thisBorder)<=sensor.getMaxDistance())
-                {
-                    here=false;
-                    break;
-                }
-            }
-            if(here)
-            {
-                return thisBorder;
-            }
-        }
-        return null;
-    }
-
-    private Location distressSignal()
-    {
-        List<Location> sensorList=new ArrayList<Location>(sensorLocations);
-        boolean here;
-        for(int x=0;x<=BOUNDING_BOX;x++)
-        {
-            for (int y=0;y<=BOUNDING_BOX;y++)
+            for (Location thisBorder : thisSensorBorder) 
             {
                 here=true;
-                DistanceComparator thisPoint=new DistanceComparator(x, y);
-                if(sensorList.get(1).distance(thisPoint)<sensorList.get(0).distance(thisPoint))
+                for (Location otherSensor : otherSensors) 
                 {
-                    sensorList.sort(thisPoint);
-                }
-                for (Location sensor : sensorList) {
-                    if(sensor.distance(thisPoint)<=sensor.getMaxDistance())
+                    if(otherSensor.distance(thisBorder)<=otherSensor.getMaxDistance())
                     {
                         here=false;
                         break;
@@ -149,10 +117,11 @@ public class Beacons
                 }
                 if(here)
                 {
-                    return thisPoint;
+                    return thisBorder;
                 }
             }
-        } 
-        return null;  
+            System.out.println("Finished with "+sensorList.indexOf(sensor));
+        }
+        return null;
     }
 }
