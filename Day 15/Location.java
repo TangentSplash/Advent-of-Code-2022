@@ -2,14 +2,13 @@ public class Location implements Comparable<Location>
 {
     private int x;
     private int y;
-    private boolean isSensor;
     private Location closestBeacon;
+    private int maxDistance;
 
     public Location(int x,int y)
     {
         this.x=x;
         this.y=y;
-        isSensor=false;
         closestBeacon=null;
     }
 
@@ -17,8 +16,8 @@ public class Location implements Comparable<Location>
     {
         this.x=x;
         this.y=y;
-        isSensor=true;
         this.closestBeacon=closestBeacon;
+        maxDistance=distance(closestBeacon);
     }
 
     public boolean equals(Location other)
@@ -55,5 +54,10 @@ public class Location implements Comparable<Location>
     public int getY()
     {
         return y;
+    }
+
+    public int getMaxDistance()
+    {
+        return maxDistance;
     }
 }

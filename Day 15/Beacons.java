@@ -2,16 +2,19 @@ import java.util.*;
 import java.io.File;
 
 /* Advent of Code 2022
-* Day 14 Part 2
+* Day 15 Part 2
 */
+
 public class Beacons 
 {
     private final int Y_LINE=2000000;
+    private final int BOUNDING_BOX=4000000;
 
     private Set<Location> sensorLocations;
     private Set<Location> beaconLocations;
-    private Set<Location> noBeaconLocations;
     private Set<Location> noBeaconsOnLine;
+
+    //Highest x 8447
  
     public Beacons() throws Exception
     {
@@ -20,16 +23,18 @@ public class Beacons
 
         sensorLocations=new TreeSet<Location>();
         beaconLocations=new TreeSet<Location>();
-        noBeaconLocations=new TreeSet<Location>();
         noBeaconsOnLine=new TreeSet<Location>();
 
         interpretInput(input);
         input.close();
 
         findImpossibleLocations();
-        
         int beaconCannot=noBeaconsOnLine.size();
         System.out.println("There are "+beaconCannot+" locations at y="+Y_LINE+", where beacons cannot be");
+
+        Location distressSignal=distressSignal();
+        int tuningFrequency=(distressSignal.getX()*BOUNDING_BOX)+distressSignal.getY();
+        System.out.println("The tuning frequency is "+tuningFrequency);
     }
 
     private void interpretInput(Scanner input)
@@ -60,7 +65,7 @@ public class Beacons
         int y;
         for (Location sensor : sensorLocations) 
         {
-            int maxDistance=sensor.distance(sensor.getClosestBeacon());
+            int maxDistance=sensor.getMaxDistance();
             int sensorY=sensor.getY();
             if(sensorY-maxDistance<Y_LINE && sensorY+maxDistance>Y_LINE)
             {
@@ -76,7 +81,6 @@ public class Beacons
                             Location check=new Location(x, y);
                             if (!beaconLocations.contains(check))
                             {
-                                //noBeaconLocations.add(check);
                                 noBeaconsOnLine.add(check);
                             }
                         }
@@ -85,5 +89,34 @@ public class Beacons
             }
         }
     }
-    
+
+    private Location distressSignal()
+    {
+        List<Location> sensorList=new ArrayList<Location>(sensorLocations);
+        boolean here;
+        for(int x=0;x<=BOUNDING_BOX;x++)
+        {
+            for (int y=0;y<=BOUNDING_BOX;y++)
+            {
+                here=true;
+                DistanceComparator thisPoint=new DistanceComparator(x, y);
+                if(sensorList.get(1).distance(thisPoint)<sensorList.get(0).distance(thisPoint))
+                {
+                    sensorList.sort(thisPoint);
+                }
+                for (Location sensor : sensorList) {
+                    if(sensor.distance(thisPoint)<=sensor.getMaxDistance())
+                    {
+                        here=false;
+                        break;
+                    }
+                }
+                if(here)
+                {
+                    return thisPoint;
+                }
+            }
+        } 
+        return null;  
+    }
 }
