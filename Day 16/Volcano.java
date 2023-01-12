@@ -13,6 +13,7 @@ public class Volcano
     private final int TIME_LIMIT=30;
     private Map<String,Valve> valves;
     private int timeRemaining;
+    private final String START_NODE="AA";
 
     public Volcano () throws Exception
     {
@@ -25,8 +26,9 @@ public class Volcano
         input.close();
 
         createMarkdownFiles();
-        //findDistances();
-        //findBestPath();
+        Valve startValve=valves.get("AA");
+        int best=startValve.search(TIME_LIMIT, new ArrayList<Valve>(valves.values()), 0, false,null);
+        System.out.println("The most pressure that can be released is "+best);
         return;
     }
 
@@ -132,17 +134,6 @@ public class Volcano
         }
     }
 
-    private void findDistances()
-    {
-        for (Valve valve : valves.values()) 
-        {
-            if (valve.getFlowRate()!=0 || valve.getName().equals("AA"))
-            {
-                
-            }
-        }
-    }
-
     private void findBestPath()
     {
         //Time to get from here to node  & flow rate available
@@ -161,6 +152,4 @@ public class Volcano
         }
         System.out.println(totalPressure);
     }
-
-
 }

@@ -51,7 +51,22 @@ public class Valve
         return flowRate;
     }
 
-    public Map<Integer,Valve> connections(int timeLeft,List<Valve> alreadyFound/*,List<Valve> allValves*/)
+    public void setOpen()
+    {
+        open=true;
+    }
+
+    public boolean isOpen()
+    {
+        return open;
+    }
+
+    public int getTimeRemaining()
+    {
+        return timeRemaining;
+    }
+
+    public Map<Integer,Valve> connections(int timeLeft,List<Valve> alreadyFound)
     {
         Map<Integer,Valve> allConnections=new TreeMap<>();
         List<Valve> foundHere=new ArrayList<Valve>(connectedValves.values());
@@ -63,86 +78,50 @@ public class Valve
         {
             if(alreadyFound==null || !alreadyFound.contains(connected))   
             {
-                allConnections.putAll(connected.connections(timeLeft-1,foundHere/*,allValves*/));
+                allConnections.putAll(connected.connections(timeLeft-1,foundHere));
             }
         }
         if(!open)
         {
             timeRemaining=timeLeft-1;
             
-            int pressureReleaseAvailable=timeRemaining*flowRate;    //TODO Add time to get back to a centroid
+            int pressureReleaseAvailable=timeRemaining*flowRate;
             allConnections.put(pressureReleaseAvailable, this);
         }
         return allConnections;
     }
 
-    public void setOpen()
+    public int search(int timeToLive,List<Valve> closedValves,int totalPressure,boolean dontOpen,Valve from)
     {
-        open=true;
-    }
-
-    public int getTimeRemaining()
-    {
-        return timeRemaining;
-    }
-
-    private int distToCentroid(List<Valve> allValves)
-    {
-        List<Valve> otherValves=new ArrayList<>(allValves);
-            allValves.remove(this);
-            for (Valve valve : otherValves) 
+        boolean notWorthContinuing=flowRate==0 && connectedValves.values().size()==1;
+        if (!notWorthContinuing && !closedValves.isEmpty() && timeToLive>0)
+        {
+            if (flowRate>0 && !dontOpen)
             {
-                if(valve.flowRate!=0 && !valve.open)
+                //Don't open this valve
+                search(timeToLive, new ArrayList<Valve>(closedValves), totalPressure, true,from);
+                
+                // Open this valve
+                timeToLive--;
+                totalPressure=timeToLive*flowRate;
+                closedValves.remove(this);
+            }
+            if (timeToLive>1)
+            {
+                List<Integer> pressures=new ArrayList<Integer>();
+                for (Valve valve : connectedValves.values()) 
                 {
-
+                    if (!valve.equals(from) && (valve.flowRate!=0  || !valve.connectedValves.isEmpty()))
+                    {
+                        pressures.add(valve.search(timeToLive-1,new ArrayList<Valve>(closedValves),totalPressure,false,this));
+                    }
+                }
+                if(!pressures.isEmpty())
+                {
+                    totalPressure=Collections.max(pressures);
                 }
             }
-            return 0;
-    }
-
-    public void distToEach()
-    {
-        Map<String,Valve> openMap;
-        List<Valve> openList;
-        Map<String,Valve> closedMap;
-
-        int i=0;
-        do{
-            for (Valve connectedValve : connectedValves.values()) 
-            {
-                if(openMap.containsKey(connectedValve.name))
-                {
-                    openMap.get(connectedValve.name).setBestDistance(connectedValve);
-                    nextNode.updateNode(openMap.get(connectedValve.name),i);
-                }
-                else if (!closedMap.containsKey(connectedValve.name))
-                {
-                    openMap.put(connectedValve.name, connectedValve);
-                }
-                i++;
-            }
-            openList=new ArrayList<Valve>(openMap.values());
-            
-            Collections.sort(openList);
-
-            closedMap.put(nextNode.getPos(), nextNode);
-
-            nextNode=openList.get(0);
-            openMap.remove(nextNode.getPos());
-        } while(!nextNode.isEnd());
-    }
-
-    public Map<String,ValveAndDist> findNodes(String from,int distToHere)
-    {
-        Map<String, ValveAndDist> shortestDistanceValves=new HashMap<String, ValveAndDist>();
-        for (Valve valve : connectedValves.values()) 
-        {
-            shortestDistanceValves.putAll(valve.findNodes(from,distToHere+1));           
         }
-        if(!name.equals(from))
-        {
-            shortestDistanceValves.put(name, new ValveAndDist(distToHere,this));
-        }
-        return null;
+        return totalPressure;
     }
 }
