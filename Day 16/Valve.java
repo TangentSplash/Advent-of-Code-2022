@@ -5,22 +5,18 @@ public class Valve
     private String name;
     private int flowRate;
     private Map<String,Valve> connectedValves;
-    private boolean open;
-    private int timeRemaining;
+    private Map<Valve,Integer> otherValves;
 
     public Valve(String name, int flowRate,Map<String,Valve> connectedValves)    
     {
         this.name=name;
         this.flowRate=flowRate;
         this.connectedValves=connectedValves;
-        open=false;
-        timeRemaining=0;
     }
 
     public Valve(String name)
     {
         this.name=name;
-        open=false;
     }
 
     public void setParamaters(int flowRate,Map<String,Valve> connectedValves)
@@ -51,77 +47,84 @@ public class Valve
         return flowRate;
     }
 
-    public void setOpen()
+    public void findPaths()
     {
-        open=true;
-    }
-
-    public boolean isOpen()
-    {
-        return open;
-    }
-
-    public int getTimeRemaining()
-    {
-        return timeRemaining;
-    }
-
-    public Map<Integer,Valve> connections(int timeLeft,List<Valve> alreadyFound)
-    {
-        Map<Integer,Valve> allConnections=new TreeMap<>();
-        List<Valve> foundHere=new ArrayList<Valve>(connectedValves.values());
-        if (alreadyFound!=null)
+        Map<Valve,Integer> allValves=new HashMap<Valve,Integer>();
+        List<Valve> openList=new ArrayList<Valve>(connectedValves.values());
+        List<Valve> newFinds=new ArrayList<Valve>();
+        for (Valve valve : openList) 
         {
-            foundHere.addAll(alreadyFound);
+            allValves.put(valve,1);    
         }
-        for (Valve connected : connectedValves.values()) 
+        List<Valve> closedList=new ArrayList<Valve>();
+        closedList.add(this);
+        while (!openList.isEmpty())
         {
-            if(alreadyFound==null || !alreadyFound.contains(connected))   
+            for (Valve valve : openList) 
             {
-                allConnections.putAll(connected.connections(timeLeft-1,foundHere));
-            }
-        }
-        if(!open)
-        {
-            timeRemaining=timeLeft-1;
-            
-            int pressureReleaseAvailable=timeRemaining*flowRate;
-            allConnections.put(pressureReleaseAvailable, this);
-        }
-        return allConnections;
-    }
-
-    public int search(int timeToLive,List<Valve> closedValves,int totalPressure,boolean dontOpen,Valve from)
-    {
-        boolean notWorthContinuing=flowRate==0 && connectedValves.values().size()==1;
-        if (!notWorthContinuing && !closedValves.isEmpty() && timeToLive>0)
-        {
-            if (flowRate>0 && !dontOpen)
-            {
-                //Don't open this valve
-                search(timeToLive, new ArrayList<Valve>(closedValves), totalPressure, true,from);
-                
-                // Open this valve
-                timeToLive--;
-                totalPressure=timeToLive*flowRate;
-                closedValves.remove(this);
-            }
-            if (timeToLive>1)
-            {
-                List<Integer> pressures=new ArrayList<Integer>();
-                for (Valve valve : connectedValves.values()) 
+                List<Valve> connected=new ArrayList<Valve>(valve.connectedValves.values());
+                connected.removeAll(closedList);
+                for (Valve newValve : connected) 
                 {
-                    if (!valve.equals(from) && (valve.flowRate!=0  || !valve.connectedValves.isEmpty()))
+                    Integer distToHere=allValves.get(valve);
+                    Integer previousDist=allValves.get(newValve);
+                    if (previousDist==null)
                     {
-                        pressures.add(valve.search(timeToLive-1,new ArrayList<Valve>(closedValves),totalPressure,false,this));
+                        allValves.put(newValve,distToHere+1);
+                    }
+                    else
+                    {
+                        int newDist=Math.max(distToHere, previousDist);
+                        allValves.replace(newValve, newDist);
                     }
                 }
-                if(!pressures.isEmpty())
-                {
-                    totalPressure=Collections.max(pressures);
-                }
+                newFinds.addAll(connected);
+                closedList.add(valve);
+            }
+            openList.clear();
+            openList.addAll(newFinds);
+            newFinds.clear();
+        }
+
+        this.otherValves=new HashMap<Valve,Integer>(allValves);
+        for (Valve valve : allValves.keySet())
+        {
+            if(valve.getFlowRate()==0)
+            {
+                otherValves.remove(valve);
+            }
+        }
+        return;
+    }
+
+    public int bestPath(int timeRemaining,Set<Valve> opened)
+    {
+        List<Valve> paths=new ArrayList<Valve>(otherValves.keySet());
+        List<Integer> pressures=new ArrayList<Integer>();
+        
+        paths.removeAll(opened);
+        int totalPressure=0;
+        if (timeRemaining>0)
+        {
+            if(flowRate>0)
+            {
+                opened.add(this);
+                timeRemaining--;
+                totalPressure=flowRate*timeRemaining;
+            }
+
+            for (Valve valve : paths) 
+            {
+                int timeMoving=otherValves.get(valve);
+                pressures.add(valve.bestPath(timeRemaining-timeMoving,new HashSet<Valve>(opened)));
+            }
+
+            if(!pressures.isEmpty())
+            {
+                totalPressure+=Collections.max(pressures);
             }
         }
         return totalPressure;
     }
+
 }

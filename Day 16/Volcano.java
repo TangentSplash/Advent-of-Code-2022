@@ -12,13 +12,11 @@ public class Volcano
 {
     private final int TIME_LIMIT=30;
     private Map<String,Valve> valves;
-    private int timeRemaining;
     private final String START_NODE="AA";
 
     public Volcano () throws Exception
     {
-        timeRemaining=TIME_LIMIT;
-        File inputFile = new File("Day 16/inputtest.txt");
+        File inputFile = new File("Day 16/input.txt");
         Scanner input = new Scanner(inputFile);
         valves=new HashMap<String,Valve>();
 
@@ -26,10 +24,10 @@ public class Volcano
         input.close();
 
         createMarkdownFiles();
-        Valve startValve=valves.get("AA");
-        int best=startValve.search(TIME_LIMIT, new ArrayList<Valve>(valves.values()), 0, false,null);
-        System.out.println("The most pressure that can be released is "+best);
-        return;
+        Valve startValve=valves.get(START_NODE);
+        findPaths(startValve);
+        int bestPressureRelease=startValve.bestPath(TIME_LIMIT,new HashSet<Valve>());
+        System.out.println("The best pressure release is "+ bestPressureRelease);
     }
 
     private void interpertInput(Scanner input)
@@ -134,22 +132,14 @@ public class Volcano
         }
     }
 
-    private void findBestPath()
+    private void findPaths(Valve startValve)
     {
-        //Time to get from here to node  & flow rate available
-        Valve startValve=valves.get("AA");
-        Valve currentValve=startValve;
-        int totalPressure=0;
-        while (timeRemaining>0)
+        for (Valve valve : valves.values()) 
         {
-            Map<Integer,Valve> connections=currentValve.connections(timeRemaining, null/*,(List<Valve>) valves.values()*/);
-            List<Integer> pressures=new ArrayList<Integer>(connections.keySet());
-            int bestPressure=pressures.get(pressures.size()-1);
-            currentValve=connections.get(bestPressure);
-            currentValve.setOpen();
-            timeRemaining=currentValve.getTimeRemaining();
-            totalPressure+=bestPressure;
+            if (valve.getFlowRate()>0 || valve.equals(startValve))
+            {
+                valve.findPaths();
+            }
         }
-        System.out.println(totalPressure);
     }
 }
