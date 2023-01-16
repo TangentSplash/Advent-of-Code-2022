@@ -5,7 +5,7 @@ import java.util.*;
 import java.io.File;
 
 /* Advent of Code 2022
-* Day 16 Part 1
+* Day 16 Part 2
 */
 
 public class Volcano 
@@ -13,6 +13,8 @@ public class Volcano
     private final int TIME_LIMIT=30;
     private Map<String,Valve> valves;
     private final String START_NODE="AA";
+
+    private List<Valve> allValves;
 
     public Volcano () throws Exception
     {
@@ -26,8 +28,16 @@ public class Volcano
         createMarkdownFiles();
         Valve startValve=valves.get(START_NODE);
         findPaths(startValve);
-        int bestPressureRelease=startValve.bestPath(TIME_LIMIT,new HashSet<Valve>());
-        System.out.println("The best pressure release is "+ bestPressureRelease);
+        int timeRemaining=TIME_LIMIT;
+
+        ValveTurner me=new ValveTurner(startValve,timeRemaining,new HashSet<Valve>());
+        allValves=me.getValves();
+        
+        int bestSoloPressureRelease=me.bestPath();
+        System.out.println("The best pressure release alone is "+ bestSoloPressureRelease);
+        
+        int bestPressureReleaseHelped=bestPathWithHelper(startValve);
+        System.out.println("The best pressure release with help is "+ bestPressureReleaseHelped);
     }
 
     private void interpertInput(Scanner input)
@@ -141,5 +151,56 @@ public class Volcano
                 valve.findPaths();
             }
         }
+    }
+
+    private int bestPathWithHelper(Valve startValve)
+    {
+        int bestPressure=0;
+        int timeRemaining=TIME_LIMIT-4;// Train the elephant
+        int size=allValves.size();
+        boolean[] flags=new boolean[size];
+        for(int i=0; i<Math.pow(2, size-1);i++)
+        {
+            Set<Valve> myValves=new HashSet<Valve>();
+            Set<Valve> helperValves=new HashSet<Valve>();
+            for (int j=0;j<size;j++)
+            {
+                if(flags[j])
+                {
+                    myValves.add(allValves.get(j));
+                }
+                else
+                {
+                    helperValves.add(allValves.get(j));
+                }
+            }
+            System.out.println("Searching node split number "+i);
+            flags=binaryCounter(i, flags);
+            ValveTurner me=new ValveTurner(startValve, timeRemaining, helperValves);
+            int myScore=me.bestPath();
+            ValveTurner helper=new ValveTurner(startValve, timeRemaining, myValves);
+            int helperScore=helper.bestPath();
+            int totalPressure=myScore+helperScore;
+            bestPressure=Math.max(totalPressure, bestPressure);
+        }
+        return bestPressure;
+    }
+
+    private boolean[] binaryCounter(int i,boolean[] previousFlags)
+    {
+        int size=previousFlags.length;
+        boolean[] newFlags = new boolean[size];
+            newFlags=Arrays.copyOf(previousFlags,size);
+            
+            for(int j=0;j<size;j++)
+            {
+                if(i>0 && Math.floorMod(i,(int)Math.pow(2, j))==0)
+                {
+                    newFlags[j]=!previousFlags[j];
+                }
+                //System.out.print(newFlags[j]+" ");
+            }
+            //System.out.println();
+            return newFlags;
     }
 }

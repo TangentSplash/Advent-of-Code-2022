@@ -97,34 +97,13 @@ public class Valve
         return;
     }
 
-    public int bestPath(int timeRemaining,Set<Valve> opened)
+    public Set<Valve> getOtherValves()
     {
-        List<Valve> paths=new ArrayList<Valve>(otherValves.keySet());
-        List<Integer> pressures=new ArrayList<Integer>();
-        
-        paths.removeAll(opened);
-        int totalPressure=0;
-        if (timeRemaining>0)
-        {
-            if(flowRate>0)
-            {
-                opened.add(this);
-                timeRemaining--;
-                totalPressure=flowRate*timeRemaining;
-            }
-
-            for (Valve valve : paths) 
-            {
-                int timeMoving=otherValves.get(valve);
-                pressures.add(valve.bestPath(timeRemaining-timeMoving,new HashSet<Valve>(opened)));
-            }
-
-            if(!pressures.isEmpty())
-            {
-                totalPressure+=Collections.max(pressures);
-            }
-        }
-        return totalPressure;
+        return otherValves.keySet();
     }
 
+    public int getDistTo(Valve valve)
+    {
+        return otherValves.get(valve);
+    }
 }
