@@ -6,12 +6,14 @@ public class Rock
     private final char ROCK_CHAR='#';
     private final int WIDTH;
     private final int LENGTH;
+    private int lowestY;
 
     public Rock(String shapeString)
     {
         List<List<Boolean>> shapeList=new ArrayList<List<Boolean>>();
         char[] shapeChars=shapeString.toCharArray();
         int row=0;
+        lowestY=0;
         shapeList.add(new ArrayList<Boolean>());
         for (char c : shapeChars) 
         {
@@ -60,6 +62,7 @@ public class Rock
             }
             x=newX;
             y=newY;
+            lowestY=y;
         }
     }
 
@@ -99,6 +102,11 @@ public class Rock
             }
         }
         return false;
+    }
+
+    public int getLowestPoint()
+    {
+        return lowestY;
     }
 
     private void stamp(int x,int y,List<List<Boolean>> chamber)
