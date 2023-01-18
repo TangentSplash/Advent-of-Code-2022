@@ -2,7 +2,7 @@ import java.io.File;
 import java.util.*;
 
 /* Advent of Code 2022
-* Day 18 Part 1
+* Day 18 Part 2
 */
 
 public class LavaDroplets 
@@ -12,41 +12,32 @@ public class LavaDroplets
     private final int SEARCH_Y=1;
     private final int SEARCH_Z=2;
 
+    private final int EXTERNAL_AIR_MODE=0;
+    private final int DROPLETS_MODE=1;
+    private final int INTERNAL_AIR_MODE=2;
+
     private int xMax;
     private int yMax;
     private int zMax;
     
-    CubeDroplet[][][] dropletsInSpace;
-    List<CubeDroplet> dropletList;
-    Set<CubeDroplet> externalDroplets;
+    private Cube[][][] dropletsInSpace;
+    private List<Cube> dropletList;
+    private Set<Cube> internalAir;
 
     public LavaDroplets() throws Exception
     {
-        File inputFile = new File("Day 18/inputtest.txt");
+        File inputFile = new File("Day 18/input.txt");
         Scanner input = new Scanner(inputFile);
-        dropletList=new ArrayList<CubeDroplet>();
-        externalDroplets=new HashSet<CubeDroplet>();
+        dropletList=new ArrayList<Cube>();
+        internalAir=new HashSet<Cube>();
 
         interpretInput(input);
         input.close();
 
-        for (int i=0;i<=xMax;i++)
-        {
-            for (int j=0;j<=yMax;j++)
-            {
-                for (int k=0;k<=zMax;k++)
-                {
-                    CubeDroplet currentDroplet=dropletsInSpace[k][j][i];
-                    if(currentDroplet!=null)
-                    {
-                        currentDroplet.searchFaces(dropletsInSpace);
-                    }
-                }
-            }
-        }
         int allExposedSurfaceArea=0;
-        for (CubeDroplet cubeDroplet : dropletList) 
+        for (Cube cubeDroplet : dropletList) 
         {
+            cubeDroplet.searchFaces(dropletsInSpace);
             allExposedSurfaceArea+=cubeDroplet.getAllExposedSurfaceArea();
         }
         System.out.println("The estimated total surface area is "+allExposedSurfaceArea);
@@ -58,12 +49,22 @@ public class LavaDroplets
         scanDirection(xMax, yMax, zMax, SEARCH_Z,false);
         scanDirection(xMax, yMax, zMax, SEARCH_Z,true);
 
-        int externalSurfaceArea=0;
-        for (CubeDroplet cubeDroplet : externalDroplets) 
+        //A poor attempt to make sure that all caves with only small openings are fully labeled as external - just search it all again 
+        scanDirection(yMax, zMax, xMax, SEARCH_X,false);
+        scanDirection(yMax, zMax, xMax, SEARCH_X,true);
+        scanDirection(xMax, zMax, yMax, SEARCH_Y,false);
+        scanDirection(xMax, zMax, yMax, SEARCH_Y,true);
+        scanDirection(xMax, yMax, zMax, SEARCH_Z,false);
+        scanDirection(xMax, yMax, zMax, SEARCH_Z,true);
+
+        int trapedAirSurfaceArea=0;
+        for (Cube airCube : internalAir) 
         {
-            externalSurfaceArea+=cubeDroplet.getAllExposedSurfaceArea();
+            airCube.searchFaces(dropletsInSpace);
+            trapedAirSurfaceArea+=(6-airCube.getAllExposedSurfaceArea());
         }
-        System.out.println("The estimated total external surface area is "+externalSurfaceArea);
+        System.out.println("The estimated air pockets area is "+trapedAirSurfaceArea);
+        System.out.println("Therefore the estimated external surface area is "+(allExposedSurfaceArea-trapedAirSurfaceArea));
     }
 
     private void interpretInput(Scanner input)
@@ -92,20 +93,20 @@ public class LavaDroplets
             zMax=Math.max(z, zMax);
         }
 
-        dropletsInSpace=new CubeDroplet[zMax+1][yMax+1][xMax+1];
+        dropletsInSpace=new Cube[zMax+1][yMax+1][xMax+1];
 
         for (int i = 0; i < xLocations.size(); i++) 
         {
             int x=xLocations.get(i);
             int y=yLocations.get(i);
             int z=zLocations.get(i);
-            CubeDroplet newDroplet=new CubeDroplet(x, y, z);
+            Cube newDroplet=new Cube(x, y, z,Cube.DROPLETS_TYPE);
             dropletsInSpace[z][y][x]=newDroplet;
             dropletList.add(newDroplet);
         }
     }
 
-    /***
+    /*** Find all internal air pockets
      * @param aMax
      * @param bMax
      * @param cMax Dimension that is being searched along
@@ -114,11 +115,12 @@ public class LavaDroplets
      */
     private void scanDirection(int aMax,int bMax,int cMax,int searchDimension,boolean searchBack)
     {
-        for (int a=0;a<aMax;a++)
+        for (int a=0;a<=aMax;a++)
         {
-            for(int b=0;b<bMax;b++)
+            for(int b=0;b<=bMax;b++)
             {
-                for (int c=0;c<cMax;c++)
+                int searchMode=EXTERNAL_AIR_MODE;
+                for (int c=0;c<=cMax;c++)
                 {
                     int i=0,j=0,k=0,searchValue=c;
                     if(searchBack)
@@ -149,60 +151,39 @@ public class LavaDroplets
                             break;
                         }
                     }
-                    CubeDroplet currentDroplet=dropletsInSpace[k][j][i];
-                    if(currentDroplet!=null)
+                    Cube currentDroplet=dropletsInSpace[k][j][i];
+                    if(currentDroplet==null)
                     {
-                        externalDroplets.add(currentDroplet);
-                        if(searchFurther(c,cMax,a,b,searchDimension,searchBack))    //If there is another droplet along this direction, it means there is  
+                        if(searchMode==DROPLETS_MODE)
                         {
-
+                            searchMode=INTERNAL_AIR_MODE;
                         }
-                        break;  //Stop searching in this dimension, search a different space
+                        Cube newCube=new Cube(i, j, k, searchMode);
+                        dropletsInSpace[k][j][i]=newCube; //set to internal/external air
+                        if(searchMode==INTERNAL_AIR_MODE)
+                        {
+                            internalAir.add(newCube);
+                        }
+                    }
+                    else if(currentDroplet.getType()==Cube.DROPLETS_TYPE)
+                    {
+                        searchMode=DROPLETS_MODE;
+                    }
+                    else if(currentDroplet.getType()==Cube.INTERNAL_AIR_TYPE && searchMode==EXTERNAL_AIR_MODE)
+                    {
+                        currentDroplet.setType(Cube.EXTERNAL_AIR_TYPE);
+                        internalAir.remove(currentDroplet);
+                    }
+                    else if (currentDroplet.getType()==Cube.EXTERNAL_AIR_TYPE)
+                    {
+                        searchMode=EXTERNAL_AIR_MODE;
+                    }
+                    else if (currentDroplet.getType()==Cube.INTERNAL_AIR_TYPE)  //Don't really care
+                    {
+                        searchMode=INTERNAL_AIR_MODE;
                     }
                 }
             }
         }
-    }
-
-    private boolean searchFurther(int start,int end,int a,int b,int searchDimension,boolean searchBack)
-    {
-        for (int d=start;d<end;d++)
-        {
-            int i=0,j=0,k=0,searchValue=d;
-            if(searchBack)
-            {
-                searchValue=end-d;
-            }
-            switch (searchDimension)
-            {
-                case 0:
-                {
-                    i=searchValue;
-                    j=a;
-                    k=b;
-                    break;
-                }
-                case 1:
-                {
-                    j=searchValue;
-                    i=a;
-                    k=b;
-                    break;
-                }
-                case 2:
-                {
-                    k=searchValue;
-                    i=a;
-                    j=b;
-                    break;
-                }
-            }
-            CubeDroplet currentDroplet=dropletsInSpace[k][j][i];
-            if(currentDroplet!=null)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 }
