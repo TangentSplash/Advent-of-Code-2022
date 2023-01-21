@@ -4,14 +4,19 @@ public class RobotFactory implements Cloneable
 {
     private Map<String,Integer> resources;
     private final Map<String,Robot> robotBlueprints;
+    private final Map<Robot,Robot> biggestSpenderOf;
+    private final Map<String,Integer> lastTimeToBuild;
     private Map<String,Integer> collectionRates;
     private Set<String> availableElements;
 
     private final int BUILD_TIME=1; 
     
-    public RobotFactory(Map<String,Robot> robotBlueprints)
+    
+    public RobotFactory(Map<String,Robot> robotBlueprints, Map<Robot,Robot> biggestSpenderOf, Map<String,Integer> lastTimeToBuild)
     {
         this.robotBlueprints=robotBlueprints;
+        this.biggestSpenderOf=biggestSpenderOf;
+        this.lastTimeToBuild=lastTimeToBuild;
         collectionRates=new HashMap<String,Integer>();
         resources=new HashMap<String,Integer>();
         availableElements=new HashSet<String>();
@@ -24,24 +29,31 @@ public class RobotFactory implements Cloneable
         }
     }
 
-    public int getBestResult(String robotToBuild,int timeSpent,int timeRemaining/*,Set<String> lastRobotsBuilt,Set<String> robotsBeforeThatOne*/) throws CloneNotSupportedException
+    public int getBestResult(String robotToBuild,int timeSpent,int timeRemaining,int maxCollectedAnywhereYet) throws CloneNotSupportedException
     {  
         int maxGeodes=0;
+
         if(timeSpent!=0)
         {
-            collectElements(timeSpent/*,robotsBeforeThatOne*/); 
+            collectElements(timeSpent); 
         }
         
         newRobot(robotToBuild);
 
+        /*int maxPossible=getMaxHypothetical(timeRemaining);
+        if(maxPossible<=maxCollectedAnywhereYet)
+        {
+            return countGeodes();
+        }*/
+
         List<Robot> canMake=new ArrayList<Robot>();
         for (Robot robot : robotBlueprints.values()) 
         {
-            List<String> dontHave=robot.getRequiredElementTypes();
-            dontHave.removeAll(availableElements);
-            if(dontHave.isEmpty())
+            List<String> elementsItDoesntHave=robot.getRequiredElementTypes();
+            elementsItDoesntHave.removeAll(availableElements);
+            if(elementsItDoesntHave.isEmpty())
             {
-                canMake.add(robot);
+                canMake.add(robot); 
             }
         }
         
@@ -50,48 +62,31 @@ public class RobotFactory implements Cloneable
             Map<String,Integer> requirements=robot.getCosts();
             List<String> needs=robot.getRequiredElementTypes();
             int timeNeeded=BUILD_TIME;   //Need a minute to build the robot
-            for (String element : needs) 
+            for (String element : needs)     
             {
                 int required=requirements.get(element);
                 int have=resources.get(element);
                 int stillNeeded=Math.max(0,required-have);
                 int rate=collectionRates.get(element);
                 int timeNeededHere=BUILD_TIME+((int) Math.ceil((double)stillNeeded/(double)rate));
-                /*if(lastRobotsBuilt.contains(element))
-                {
-                    timeNeededHere++;
-                }*/
+
                 timeNeeded=Math.max(timeNeeded, timeNeededHere);
             }
             //Create factory clone - for a different instance
             int newTimeRemaining=timeRemaining-timeNeeded;
-            RobotFactory newBranch=this.clone();
-            int geodes;
-            if (newTimeRemaining>0)
+
+            if (newTimeRemaining>=lastTimeToBuild.get(robot.getType()) && thisRobotMightContribute(robot, timeRemaining)) //Only build this robot if it could be useful
             {
+                RobotFactory newBranch=this.clone();
                 newBranch.useElements(needs,requirements);
-                /*Set<String> builtInThisTimeBracket=new HashSet<>();
-                Set<String> builtLastTimeBracket=new HashSet<>();
-                if(timeNeeded==0)
-                {
-                    builtInThisTimeBracket.addAll(lastRobotsBuilt);
-                    builtInThisTimeBracket.add(robotToBuild);
-                    builtLastTimeBracket.addAll(robotsBeforeThatOne);
-                }
-                else
-                {
-                    builtInThisTimeBracket.add(robotToBuild);
-                    builtLastTimeBracket.addAll(lastRobotsBuilt);
-                }*/
-                geodes=newBranch.getBestResult(robot.getType(),timeNeeded,newTimeRemaining/*,builtInThisTimeBracket,builtLastTimeBracket*/);
+
+                maxCollectedAnywhereYet=Math.max(maxGeodes, maxCollectedAnywhereYet);
+                int geodes=newBranch.getBestResult(robot.getType(),timeNeeded,newTimeRemaining,maxCollectedAnywhereYet);
+                maxGeodes=Math.max(geodes, maxGeodes);
             }
-            else
-            {
-                newBranch.collectElements(timeRemaining/*,new HashSet<>(Arrays.asList(robotToBuild))*/);
-                geodes=newBranch.countGeodes();
-            }
-            maxGeodes=Math.max(geodes, maxGeodes);
         }
+        collectElements(timeRemaining);
+        maxGeodes=Math.max(countGeodes(), maxGeodes);
         return maxGeodes;
     }
 
@@ -117,23 +112,18 @@ public class RobotFactory implements Cloneable
         resources.replace(element, currentStock);
     }
 
-    private void collectElements(int timeSpent/*,Set<String> lastRobotBuilt*/)
+    private void collectElements(int timeSpent)
     {
         for (String element : availableElements) //collect resources
         {
-            /*boolean removeOne=lastRobotBuilt.contains(element);*/  //The robot that was last built took a minute to build- during which it was not collecting
-            collectElement(element, timeSpent/*,removeOne*/);
+            collectElement(element, timeSpent);
         }
     }
 
-    private void collectElement(String element,int timeSpent/*,boolean removeOne*/)
+    private void collectElement(String element,int timeSpent)
     {
         int rate=collectionRates.get(element);
         int collected=rate*timeSpent;
-        /*if(removeOne)
-        {
-            collected--;
-        }*/
         int current=resources.get(element);
         int newAmount=current+collected;
         if (newAmount<0)
@@ -156,5 +146,30 @@ public class RobotFactory implements Cloneable
     {
         return resources.get(GeodeCollecting.WANTED_ELEMENT);
     }
-    
+
+    private int getMaxHypothetical(int timeRemaining)
+    {
+        int currentRate=collectionRates.get(GeodeCollecting.WANTED_ELEMENT);
+        int currentNo=resources.get(GeodeCollecting.WANTED_ELEMENT);//TODO if cant possibly make geode this time - dont count it
+  
+        int maxHypothetical=(currentRate*timeRemaining*timeRemaining)+((timeRemaining-currentRate)*((timeRemaining*(timeRemaining+1))/2))-((timeRemaining*(timeRemaining+1)*((2*timeRemaining)+1))/6);
+        return maxHypothetical+currentNo;
+    }
+
+    private boolean thisRobotMightContribute(Robot robot,int timeRemaining)
+    { 
+        String robotType=robot.getType();
+        if (robotType.equals(GeodeCollecting.WANTED_ELEMENT))
+        {
+            return true;
+        }
+        Robot biggestSpender=biggestSpenderOf.get(robot);
+        String biggestSpenderType=biggestSpender.getType(); 
+
+        int lastTime=lastTimeToBuild.get(biggestSpenderType)-1; //Todo what about spend less but alowed to create for longer?
+        int cost=biggestSpender.getCosts().get(robotType);  //TODO Assumes biggest spender will be purchased until the very end
+        int willHaveAtEndWithNoNew=((timeRemaining-lastTime)*collectionRates.get(robotType))+resources.get(robotType);
+        int greatestPossibleCost=cost*(timeRemaining-lastTime);
+        return greatestPossibleCost>willHaveAtEndWithNoNew;
+    }
 }

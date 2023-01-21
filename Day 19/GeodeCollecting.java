@@ -14,17 +14,21 @@ public class GeodeCollecting
 
     public GeodeCollecting()throws Exception
     {
-        Path path = Paths.get("Day 19/inputtest.txt");
+        Path path = Paths.get("Day 19/input.txt");
         blueprints=new ArrayList<Blueprint>();
         interpretInput(path);
 
+        int qualityLevelSum=0;
         for (Blueprint blueprint: blueprints) 
         {
             RobotFactory factory=blueprint.buildRobotFactory();
-            int bestNumberOfGeodes=factory.getBestResult(START_ROBOT,0,TIME_LIMIT/*,new HashSet<String>(),new HashSet<String>()*/);
-            int qualityLevel=blueprint.getNumber()*bestNumberOfGeodes;
-            System.out.println();
+            int bestNumberOfGeodes=factory.getBestResult(START_ROBOT,0,TIME_LIMIT,0);
+            int number=blueprint.getNumber();
+            int qualityLevel=number*bestNumberOfGeodes;
+            System.out.println("Blueprint "+number+": Best number of geodes is "+ bestNumberOfGeodes+". Giving a quality level of "+qualityLevel);
+            qualityLevelSum+=qualityLevel;
         }
+        System.out.println("\nQuality level sum is "+qualityLevelSum);
     }
 
     private void interpretInput(Path path) throws Exception
