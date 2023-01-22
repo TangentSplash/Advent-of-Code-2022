@@ -10,7 +10,7 @@ public class Blueprint
     private final int TIME_NEEDED_AFTER_BUILD_GEODE=1;
     private final int TIME_NEEDED_AFTER_BUILD_CLAY=5;
     private final int TIME_NEEDED_AFTER_BUILD_OTHER=3;
-
+    
     private final String CLAY="clay";
 
     public Blueprint(int number, List<String> types,List<String[]> costs) 

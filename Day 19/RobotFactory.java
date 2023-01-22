@@ -40,12 +40,12 @@ public class RobotFactory implements Cloneable
         
         newRobot(robotToBuild);
 
-        /*int maxPossible=getMaxHypothetical(timeRemaining);
+        int maxPossible=getMaxHypothetical(timeRemaining);
         if(maxPossible<=maxCollectedAnywhereYet)
         {
             return countGeodes();
-        }*/
-
+        }
+        //TODO one option - buy as many geodes as possible - ...?
         List<Robot> canMake=new ArrayList<Robot>();
         for (Robot robot : robotBlueprints.values()) 
         {
@@ -75,7 +75,7 @@ public class RobotFactory implements Cloneable
             //Create factory clone - for a different instance
             int newTimeRemaining=timeRemaining-timeNeeded;
 
-            if (newTimeRemaining>=lastTimeToBuild.get(robot.getType()) && thisRobotMightContribute(robot, timeRemaining)) //Only build this robot if it could be useful
+            if (newTimeRemaining>=lastTimeToBuild.get(robot.getType()) && thisRobotMightContribute(robot, timeRemaining,newTimeRemaining)) //Only build this robot if it could be useful
             {
                 RobotFactory newBranch=this.clone();
                 newBranch.useElements(needs,requirements);
@@ -150,13 +150,38 @@ public class RobotFactory implements Cloneable
     private int getMaxHypothetical(int timeRemaining)
     {
         int currentRate=collectionRates.get(GeodeCollecting.WANTED_ELEMENT);
-        int currentNo=resources.get(GeodeCollecting.WANTED_ELEMENT);//TODO if cant possibly make geode this time - dont count it
-  
-        int maxHypothetical=(currentRate*timeRemaining*timeRemaining)+((timeRemaining-currentRate)*((timeRemaining*(timeRemaining+1))/2))-((timeRemaining*(timeRemaining+1)*((2*timeRemaining)+1))/6);
+        int currentNo=resources.get(GeodeCollecting.WANTED_ELEMENT);
+        int resultAtCurrentRate=(timeRemaining*currentRate);
+        if(!availableElements.contains(GeodeCollecting.WANTED_ELEMENT))
+        {
+            resultAtCurrentRate+=currentRate;
+            timeRemaining--;
+        }
+        if(!availableElements.contains("obsidian"))
+        {
+            resultAtCurrentRate+=2*currentRate;
+            timeRemaining-=2;
+        }
+        if(!availableElements.contains("clay")) //TODO If we dont have clay - what is the fastest time we could get a usable amount of clay?
+        {
+            resultAtCurrentRate+=2*currentRate;
+            timeRemaining-=2;
+        }
+        int withNewGeodeEachTime=(timeRemaining*(timeRemaining+1))/2;
+        int maxHypothetical=resultAtCurrentRate+withNewGeodeEachTime;
+        /*for (int t=0;t<timeRemaining;t++)
+        {
+            if (!availableElements.contains(GeodeCollecting.WANTED_ELEMENT) && t==1)    //If cant possibly make geode this time - dont count it
+            {
+                continue;
+            }
+            maxHypothetical+=(currentRate+t)*(timeRemaining-t);
+        }*/
+        ///int maxHypothetical=(currentRate*timeRemaining*timeRemaining)+((timeRemaining-currentRate)*((timeRemaining*(timeRemaining+1))/2))-((timeRemaining*(timeRemaining+1)*((2*timeRemaining)+1))/6);
         return maxHypothetical+currentNo;
     }
 
-    private boolean thisRobotMightContribute(Robot robot,int timeRemaining)
+    private boolean thisRobotMightContribute(Robot robot,int timeRemaining,int newTimeRemaining)
     { 
         String robotType=robot.getType();
         if (robotType.equals(GeodeCollecting.WANTED_ELEMENT))
@@ -164,12 +189,20 @@ public class RobotFactory implements Cloneable
             return true;
         }
         Robot biggestSpender=biggestSpenderOf.get(robot);
-        String biggestSpenderType=biggestSpender.getType(); 
+        String biggestSpenderType=biggestSpender.getType();
 
-        int lastTime=lastTimeToBuild.get(biggestSpenderType)-1; //Todo what about spend less but alowed to create for longer?
-        int cost=biggestSpender.getCosts().get(robotType);  //TODO Assumes biggest spender will be purchased until the very end
+        int lastTime=lastTimeToBuild.get(biggestSpenderType)-1;
+        int cost=biggestSpender.getCosts().get(robotType);
+        int greatestPossibleCost=cost*(newTimeRemaining-(lastTime+1));
+        if(robotType.equals("ore"))
+        {
+            int newlastTime=lastTimeToBuild.get(GeodeCollecting.WANTED_ELEMENT)-1;
+            int costForGeode=robotBlueprints.get(GeodeCollecting.WANTED_ELEMENT).getCosts().get(robotType);
+            int time=(lastTime+1)-newlastTime;
+            greatestPossibleCost+=(costForGeode*time);
+            lastTime=newlastTime;
+        }
         int willHaveAtEndWithNoNew=((timeRemaining-lastTime)*collectionRates.get(robotType))+resources.get(robotType);
-        int greatestPossibleCost=cost*(timeRemaining-lastTime);
         return greatestPossibleCost>willHaveAtEndWithNoNew;
     }
 }
