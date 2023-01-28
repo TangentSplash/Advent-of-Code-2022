@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class RobotFactory implements Cloneable
+public class RobotFactory implements Cloneable,Comparable<RobotFactory>
 {
     private Map<String,Integer> resources;
     private final Map<String,Robot> robotBlueprints;
@@ -10,13 +10,23 @@ public class RobotFactory implements Cloneable
     private Set<String> availableElements;
 
     private final int BUILD_TIME=1; 
+    private final int MIN_ORE_TIME;
+    private final int MIN_OBSIDAIN_TIME;
+    private final int MIN_CLAY_TIME;
+
+    private int timeRemaining;
+
+    private int maxHypothetical;
     
     
-    public RobotFactory(Map<String,Robot> robotBlueprints, Map<Robot,Robot> biggestSpenderOf, Map<String,Integer> lastTimeToBuild)
+    public RobotFactory(Map<String,Robot> robotBlueprints, Map<Robot,Robot> biggestSpenderOf, Map<String,Integer> lastTimeToBuild,int minTimeToGetNeededClay,int minTimeToGetNeededObsidian,int minTimeToGetNeededOre)
     {
         this.robotBlueprints=robotBlueprints;
         this.biggestSpenderOf=biggestSpenderOf;
         this.lastTimeToBuild=lastTimeToBuild;
+        this.MIN_ORE_TIME=minTimeToGetNeededOre;
+        this.MIN_CLAY_TIME=minTimeToGetNeededClay;
+        this.MIN_OBSIDAIN_TIME=minTimeToGetNeededObsidian;
         collectionRates=new HashMap<String,Integer>();
         resources=new HashMap<String,Integer>();
         availableElements=new HashSet<String>();
@@ -29,22 +39,20 @@ public class RobotFactory implements Cloneable
         }
     }
 
-    public int getBestResult(String robotToBuild,int timeSpent,int timeRemaining,int maxCollectedAnywhereYet) throws CloneNotSupportedException
-    {  
-        int maxGeodes=0;
-
+    public void setupClone(String robotToBuild,int timeSpent,int timeRemaining)
+    {
         if(timeSpent!=0)
         {
             collectElements(timeSpent); 
         }
-        
         newRobot(robotToBuild);
+        this.maxHypothetical= getMaxHypothetical(timeRemaining);
+        this.timeRemaining=timeRemaining;
+    }
 
-        int maxPossible=getMaxHypothetical(timeRemaining);
-        if(maxPossible<=maxCollectedAnywhereYet)
-        {
-            return countGeodes();
-        }
+    public int getBestResult(int maxCollectedAnywhereYet) throws CloneNotSupportedException
+    {  
+        int maxGeodes=0;
         //TODO one option - buy as many geodes as possible - ...?
         List<Robot> canMake=new ArrayList<Robot>();
         for (Robot robot : robotBlueprints.values()) 
@@ -56,7 +64,7 @@ public class RobotFactory implements Cloneable
                 canMake.add(robot); 
             }
         }
-        
+        List<RobotFactory> options=new ArrayList<RobotFactory>();
         for (Robot robot : canMake) 
         {
             Map<String,Integer> requirements=robot.getCosts();
@@ -79,10 +87,20 @@ public class RobotFactory implements Cloneable
             {
                 RobotFactory newBranch=this.clone();
                 newBranch.useElements(needs,requirements);
+                newBranch.setupClone(robot.getType(), timeNeeded, newTimeRemaining);
+                options.add(newBranch);
+            }
+        }
 
-                maxCollectedAnywhereYet=Math.max(maxGeodes, maxCollectedAnywhereYet);
-                int geodes=newBranch.getBestResult(robot.getType(),timeNeeded,newTimeRemaining,maxCollectedAnywhereYet);
+        Collections.sort(options);
+        for (RobotFactory branch : options) 
+        {
+            int maxHypothetical=branch.maxHypothetical;
+            if (maxHypothetical>maxCollectedAnywhereYet)
+            {
+                int geodes=branch.getBestResult(maxCollectedAnywhereYet);   //Todo list of all maxHypothetical branches
                 maxGeodes=Math.max(geodes, maxGeodes);
+                maxCollectedAnywhereYet=Math.max(maxGeodes, maxCollectedAnywhereYet);
             }
         }
         collectElements(timeRemaining);
@@ -152,32 +170,26 @@ public class RobotFactory implements Cloneable
         int currentRate=collectionRates.get(GeodeCollecting.WANTED_ELEMENT);
         int currentNo=resources.get(GeodeCollecting.WANTED_ELEMENT);
         int resultAtCurrentRate=(timeRemaining*currentRate);
+
         if(!availableElements.contains(GeodeCollecting.WANTED_ELEMENT))
         {
-            resultAtCurrentRate+=currentRate;
-            timeRemaining--;
+            timeRemaining--;   
         }
         if(!availableElements.contains("obsidian"))
         {
-            resultAtCurrentRate+=2*currentRate;
-            timeRemaining-=2;
+            timeRemaining-=MIN_OBSIDAIN_TIME;   //Was 2
         }
-        if(!availableElements.contains("clay")) //TODO If we dont have clay - what is the fastest time we could get a usable amount of clay?
+        if(!availableElements.contains("clay")) 
         {
-            resultAtCurrentRate+=2*currentRate;
-            timeRemaining-=2;
+            timeRemaining-=MIN_CLAY_TIME;   //Was 2
+        }
+        if(!availableElements.contains("ore")) 
+        {
+            timeRemaining-=MIN_ORE_TIME;
         }
         int withNewGeodeEachTime=(timeRemaining*(timeRemaining+1))/2;
         int maxHypothetical=resultAtCurrentRate+withNewGeodeEachTime;
-        /*for (int t=0;t<timeRemaining;t++)
-        {
-            if (!availableElements.contains(GeodeCollecting.WANTED_ELEMENT) && t==1)    //If cant possibly make geode this time - dont count it
-            {
-                continue;
-            }
-            maxHypothetical+=(currentRate+t)*(timeRemaining-t);
-        }*/
-        ///int maxHypothetical=(currentRate*timeRemaining*timeRemaining)+((timeRemaining-currentRate)*((timeRemaining*(timeRemaining+1))/2))-((timeRemaining*(timeRemaining+1)*((2*timeRemaining)+1))/6);
+        
         return maxHypothetical+currentNo;
     }
 
@@ -204,5 +216,10 @@ public class RobotFactory implements Cloneable
         }
         int willHaveAtEndWithNoNew=((timeRemaining-lastTime)*collectionRates.get(robotType))+resources.get(robotType);
         return greatestPossibleCost>willHaveAtEndWithNoNew;
+    }
+
+    public int compareTo(RobotFactory other) 
+    {
+        return other.maxHypothetical-maxHypothetical;
     }
 }

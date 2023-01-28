@@ -10,7 +10,7 @@ public class GeodeCollecting
     private List<Blueprint> blueprints;
     private final int PART_ONE_TIME_LIMIT=24;
     private final int PART_TWO_TIME_LIMIT=32;
-    private final boolean PART_ONE=true;
+    private final boolean PART_ONE=false;
     private final int PART_TWO_BLUEPRINTS=3;
     public static final String START_ROBOT="ore";
     public static final String WANTED_ELEMENT="geode";
@@ -27,7 +27,8 @@ public class GeodeCollecting
             for (Blueprint blueprint: blueprints) 
             {
                 RobotFactory factory=blueprint.buildRobotFactory();
-                int bestNumberOfGeodes=factory.getBestResult(START_ROBOT,0,PART_ONE_TIME_LIMIT,0);
+                factory.setupClone(START_ROBOT,0,PART_ONE_TIME_LIMIT);
+                int bestNumberOfGeodes=factory.getBestResult(0);
                 int number=blueprint.getNumber();
                 int qualityLevel=number*bestNumberOfGeodes;
                 System.out.println("Blueprint "+number+": Best number of geodes is "+ bestNumberOfGeodes+". Giving a quality level of "+qualityLevel);
@@ -43,7 +44,8 @@ public class GeodeCollecting
                 Blueprint blueprint=blueprints.get(i);
                 RobotFactory factory=blueprint.buildRobotFactory();
                 int number=blueprint.getNumber();
-                int bestNumberOfGeodes=factory.getBestResult(START_ROBOT,0,PART_TWO_TIME_LIMIT,0);
+                factory.setupClone(START_ROBOT,0,PART_TWO_TIME_LIMIT);
+                int bestNumberOfGeodes=factory.getBestResult(0);
                 System.out.println("Blueprint "+number+": Best number of geodes is "+ bestNumberOfGeodes);
                 geodes*=bestNumberOfGeodes;
             }

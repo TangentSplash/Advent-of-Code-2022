@@ -6,6 +6,9 @@ public class Blueprint
     private Map<String,Robot> robotBlueprints;
     private Map<Robot,Robot> biggestSpenderOf;
     private Map<String,Integer> lastTimeToBuild;
+    private int minTimeToGetNeededClay;
+    private int minTimeToGetNeededObsidian;
+    private int minTimeToGetNeededOre;
 
     private final int TIME_NEEDED_AFTER_BUILD_GEODE=1;
     private final int TIME_NEEDED_AFTER_BUILD_CLAY=5;
@@ -24,6 +27,7 @@ public class Blueprint
 
         getBiggestSpender();
         getLastTimeToBuild();
+        getFastest();
     }
 
     public int getNumber()
@@ -41,7 +45,7 @@ public class Blueprint
 
     public RobotFactory buildRobotFactory()
     {
-        return new RobotFactory(robotBlueprints,biggestSpenderOf,lastTimeToBuild);
+        return new RobotFactory(robotBlueprints,biggestSpenderOf,lastTimeToBuild,minTimeToGetNeededClay,minTimeToGetNeededObsidian,minTimeToGetNeededOre);
     }
 
     private void getBiggestSpender()
@@ -81,5 +85,34 @@ public class Blueprint
                 lastTimeToBuild.put(type,TIME_NEEDED_AFTER_BUILD_OTHER);
             }
         }
+    }
+
+    private void getFastest()
+    {
+        int neededClay=robotBlueprints.get("obsidian").getCosts().get(CLAY);
+        minTimeToGetNeededClay=fastestToGetFromZero(neededClay);
+
+        int neededObsidian=robotBlueprints.get(GeodeCollecting.WANTED_ELEMENT).getCosts().get("obsidian");
+        minTimeToGetNeededObsidian=fastestToGetFromZero(neededObsidian);
+
+        int neededOreMin=1000;
+        for (Robot robot : robotBlueprints.values()) 
+        {
+            neededOreMin=Math.min(neededOreMin,robot.getCosts().get("ore"));
+        }
+        minTimeToGetNeededOre=fastestToGetFromZero(neededOreMin);
+    }
+
+    private int fastestToGetFromZero(int needed)
+    {
+        int rate=0;
+        int time=0;
+        while (needed>0)
+        {
+            rate++;
+            time++;
+            needed-=rate;
+        }
+        return time;
     }
 }
