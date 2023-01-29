@@ -4,6 +4,14 @@ public class SortByHeuristic implements Comparator<RobotFactory>
 {
     public int compare(RobotFactory a, RobotFactory b)
     {
-        return (b.getMaxHyp()/b.getTimeRemaining())-(a.getMaxHyp()/a.getTimeRemaining());
+        int heuristic=(b.getMaxHyp()/b.getTimeRemaining())-(a.getMaxHyp()/a.getTimeRemaining());
+        if (heuristic==0)
+        {    
+            if(a.hashCode()>b.hashCode())
+            {
+                heuristic++;
+            }
+        }
+        return heuristic;
     }
 }

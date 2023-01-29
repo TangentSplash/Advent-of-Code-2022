@@ -17,7 +17,7 @@ public class GeodeCollecting
 
     public GeodeCollecting()throws Exception
     {
-        Path path = Paths.get("Day 19/inputtest.txt");
+        Path path = Paths.get("Day 19/input.txt");
         blueprints=new ArrayList<Blueprint>();
         interpretInput(path);
 
@@ -86,34 +86,36 @@ public class GeodeCollecting
     private int getMaxGeodes(int timeLimit,RobotFactory startingFactory) throws CloneNotSupportedException
     {
         startingFactory.setupClone(START_ROBOT,0,timeLimit);
-        List<RobotFactory> nodes=new ArrayList<RobotFactory>();
-        //TreeSet<RobotFactory> nodesSortedHeuristic=new TreeSet<RobotFactory>(new SortByHeuristic());
-        nodes.add(startingFactory);
-        //TreeSet<RobotFactory> nodesSortedMaxPossible=new TreeSet<RobotFactory>(nodesSortedHeuristic);
+        //List<RobotFactory> nodes=new ArrayList<RobotFactory>();
+        TreeSet<RobotFactory> nodesSortedHeuristic=new TreeSet<RobotFactory>(new SortByHeuristic());
+        nodesSortedHeuristic.add(startingFactory);
+        TreeSet<RobotFactory> nodesSortedMaxPossible=new TreeSet<RobotFactory>();
+        nodesSortedMaxPossible.add(startingFactory);
         int maxCollected=0;
 
-        while(!nodes.isEmpty())
+        while(!nodesSortedMaxPossible.isEmpty())
         {
-            int length=nodes.size();
-            Collections.sort(nodes);
-            for (int i =length-1;i>=0;i--)
+            while (!nodesSortedMaxPossible.isEmpty()) 
             {
-                if(nodes.get(i).getMaxHyp()<=maxCollected)
+                RobotFactory lowestHypothetical=nodesSortedMaxPossible.first();
+                if(lowestHypothetical.getMaxHyp()<=maxCollected)
                 {
-                    nodes.remove(i);
+                    nodesSortedMaxPossible.remove(lowestHypothetical);
+                    nodesSortedHeuristic.remove(lowestHypothetical);
                 }
                 else
                 {
                     break;
                 }
             }
-            if(nodes.isEmpty())
+            if(nodesSortedHeuristic.isEmpty())
             {
                 break;
             }
-            Collections.sort(nodes,new SortByHeuristic());  //Todo Double sorting is a disaster
-            RobotFactory currentNode=nodes.remove(0);
-            List<RobotFactory> newOptions=currentNode.getOptions(maxCollected);
+            RobotFactory currentNode=nodesSortedHeuristic.first();
+            nodesSortedHeuristic.remove(currentNode);
+            nodesSortedMaxPossible.remove(currentNode);
+            Set<RobotFactory> newOptions=currentNode.getOptions(maxCollected);
             if(newOptions.isEmpty())
             {
                 int geodes=currentNode.countGeodes();
@@ -121,7 +123,8 @@ public class GeodeCollecting
             }
             else
             {
-                nodes.addAll(newOptions);
+                nodesSortedHeuristic.addAll(newOptions);
+                nodesSortedMaxPossible.addAll(newOptions);
             }
         }
 

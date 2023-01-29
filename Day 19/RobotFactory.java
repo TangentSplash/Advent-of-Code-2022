@@ -50,7 +50,7 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
         this.timeRemaining=timeRemaining;
     }
 
-    public List<RobotFactory> getOptions(int maxCollectedAnywhereYet) throws CloneNotSupportedException
+    public Set<RobotFactory> getOptions(int maxCollectedAnywhereYet) throws CloneNotSupportedException
     {  
         //TODO one option - buy as many geodes as possible - ...?
         List<Robot> canMake=new ArrayList<Robot>();
@@ -63,7 +63,7 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
                 canMake.add(robot); 
             }
         }
-        List<RobotFactory> options=new ArrayList<RobotFactory>();
+        Set<RobotFactory> options=new TreeSet<RobotFactory>();
         for (Robot robot : canMake) 
         {
             Map<String,Integer> requirements=robot.getCosts();
@@ -220,7 +220,15 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
 
     public int compareTo(RobotFactory other) 
     {
-        return (other.maxHypothetical-maxHypothetical);
+        int hypothetical=maxHypothetical-other.maxHypothetical;
+        if (hypothetical==0)
+        {
+            if(hashCode()>other.hashCode() )
+            {
+                hypothetical++;
+            }
+        }
+        return hypothetical;
     }
 
     public int getMaxHyp()
