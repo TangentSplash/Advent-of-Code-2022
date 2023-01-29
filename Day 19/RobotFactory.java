@@ -50,9 +50,8 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
         this.timeRemaining=timeRemaining;
     }
 
-    public int getBestResult(int maxCollectedAnywhereYet) throws CloneNotSupportedException
+    public List<RobotFactory> getOptions(int maxCollectedAnywhereYet) throws CloneNotSupportedException
     {  
-        int maxGeodes=0;
         //TODO one option - buy as many geodes as possible - ...?
         List<Robot> canMake=new ArrayList<Robot>();
         for (Robot robot : robotBlueprints.values()) 
@@ -83,7 +82,7 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
             //Create factory clone - for a different instance
             int newTimeRemaining=timeRemaining-timeNeeded;
 
-            if (newTimeRemaining>=lastTimeToBuild.get(robot.getType()) && thisRobotMightContribute(robot, timeRemaining,newTimeRemaining)) //Only build this robot if it could be useful
+            if (newTimeRemaining>=lastTimeToBuild.get(robot.getType()) && thisRobotMightContribute(robot, timeRemaining,newTimeRemaining)) //TODO REINSTATE:   Only build this robot if it could be useful
             {
                 RobotFactory newBranch=this.clone();
                 newBranch.useElements(needs,requirements);
@@ -91,21 +90,21 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
                 options.add(newBranch);
             }
         }
-
-        Collections.sort(options);
+        return options;
+        /*Collections.sort(options);
         for (RobotFactory branch : options) 
         {
             int maxHypothetical=branch.maxHypothetical;
             if (maxHypothetical>maxCollectedAnywhereYet)
             {
-                int geodes=branch.getBestResult(maxCollectedAnywhereYet);   //Todo list of all maxHypothetical branches
+                int geodes=branch.getOptions(maxCollectedAnywhereYet);   //Todo list of all maxHypothetical branches
                 maxGeodes=Math.max(geodes, maxGeodes);
                 maxCollectedAnywhereYet=Math.max(maxGeodes, maxCollectedAnywhereYet);
             }
         }
         collectElements(timeRemaining);
         maxGeodes=Math.max(countGeodes(), maxGeodes);
-        return maxGeodes;
+        return maxGeodes;*/
     }
 
     private void newRobot(String type)
@@ -160,8 +159,9 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
         return clone;
     }
 
-    private int countGeodes()
+    public int countGeodes()
     {
+        collectElements(timeRemaining);
         return resources.get(GeodeCollecting.WANTED_ELEMENT);
     }
 
@@ -220,6 +220,16 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
 
     public int compareTo(RobotFactory other) 
     {
-        return other.maxHypothetical-maxHypothetical;
+        return (other.maxHypothetical-maxHypothetical);
+    }
+
+    public int getMaxHyp()
+    {
+        return maxHypothetical;
+    }
+
+    public int getTimeRemaining()
+    {
+        return timeRemaining;
     }
 }

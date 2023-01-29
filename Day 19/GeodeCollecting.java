@@ -2,7 +2,7 @@ import java.nio.file.*;
 import java.util.*;
 
 /* Advent of Code 2022
-* Day 19 Part 1
+* Day 19 Part 2
 */
 
 public class GeodeCollecting 
@@ -17,7 +17,7 @@ public class GeodeCollecting
 
     public GeodeCollecting()throws Exception
     {
-        Path path = Paths.get("Day 19/input.txt");
+        Path path = Paths.get("Day 19/inputtest.txt");
         blueprints=new ArrayList<Blueprint>();
         interpretInput(path);
 
@@ -27,8 +27,7 @@ public class GeodeCollecting
             for (Blueprint blueprint: blueprints) 
             {
                 RobotFactory factory=blueprint.buildRobotFactory();
-                factory.setupClone(START_ROBOT,0,PART_ONE_TIME_LIMIT);
-                int bestNumberOfGeodes=factory.getBestResult(0);
+                int bestNumberOfGeodes=getMaxGeodes(PART_ONE_TIME_LIMIT, factory);
                 int number=blueprint.getNumber();
                 int qualityLevel=number*bestNumberOfGeodes;
                 System.out.println("Blueprint "+number+": Best number of geodes is "+ bestNumberOfGeodes+". Giving a quality level of "+qualityLevel);
@@ -44,8 +43,7 @@ public class GeodeCollecting
                 Blueprint blueprint=blueprints.get(i);
                 RobotFactory factory=blueprint.buildRobotFactory();
                 int number=blueprint.getNumber();
-                factory.setupClone(START_ROBOT,0,PART_TWO_TIME_LIMIT);
-                int bestNumberOfGeodes=factory.getBestResult(0);
+                int bestNumberOfGeodes=getMaxGeodes(PART_TWO_TIME_LIMIT, factory);
                 System.out.println("Blueprint "+number+": Best number of geodes is "+ bestNumberOfGeodes);
                 geodes*=bestNumberOfGeodes;
             }
@@ -83,6 +81,51 @@ public class GeodeCollecting
             }
         }
         return;
+    }
+
+    private int getMaxGeodes(int timeLimit,RobotFactory startingFactory) throws CloneNotSupportedException
+    {
+        startingFactory.setupClone(START_ROBOT,0,timeLimit);
+        List<RobotFactory> nodes=new ArrayList<RobotFactory>();
+        //TreeSet<RobotFactory> nodesSortedHeuristic=new TreeSet<RobotFactory>(new SortByHeuristic());
+        nodes.add(startingFactory);
+        //TreeSet<RobotFactory> nodesSortedMaxPossible=new TreeSet<RobotFactory>(nodesSortedHeuristic);
+        int maxCollected=0;
+
+        while(!nodes.isEmpty())
+        {
+            int length=nodes.size();
+            Collections.sort(nodes);
+            for (int i =length-1;i>=0;i--)
+            {
+                if(nodes.get(i).getMaxHyp()<=maxCollected)
+                {
+                    nodes.remove(i);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if(nodes.isEmpty())
+            {
+                break;
+            }
+            Collections.sort(nodes,new SortByHeuristic());  //Todo Double sorting is a disaster
+            RobotFactory currentNode=nodes.remove(0);
+            List<RobotFactory> newOptions=currentNode.getOptions(maxCollected);
+            if(newOptions.isEmpty())
+            {
+                int geodes=currentNode.countGeodes();
+                maxCollected=Math.max(maxCollected, geodes);
+            }
+            else
+            {
+                nodes.addAll(newOptions);
+            }
+        }
+
+        return maxCollected;
     }
     
 }
