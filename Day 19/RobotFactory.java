@@ -50,7 +50,7 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
         this.timeRemaining=timeRemaining;
     }
 
-    public Set<RobotFactory> getOptions(int maxCollectedAnywhereYet) throws CloneNotSupportedException
+    public List<RobotFactory> getOptions(int maxCollectedAnywhereYet) throws CloneNotSupportedException
     {  
         //TODO one option - buy as many geodes as possible - ...?
         List<Robot> canMake=new ArrayList<Robot>();
@@ -63,7 +63,7 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
                 canMake.add(robot); 
             }
         }
-        Set<RobotFactory> options=new TreeSet<RobotFactory>();
+        List<RobotFactory> options=new ArrayList<RobotFactory>();
         for (Robot robot : canMake) 
         {
             Map<String,Integer> requirements=robot.getCosts();
@@ -203,14 +203,14 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
         Robot biggestSpender=biggestSpenderOf.get(robot);
         String biggestSpenderType=biggestSpender.getType();
 
-        int lastTime=lastTimeToBuild.get(biggestSpenderType)-1;
+        int lastTime=lastTimeToBuild.get(biggestSpenderType);
         int cost=biggestSpender.getCosts().get(robotType);
-        int greatestPossibleCost=cost*(newTimeRemaining-(lastTime+1));
+        int greatestPossibleCost=cost*(newTimeRemaining-(lastTime));
         if(robotType.equals("ore"))
         {
-            int newlastTime=lastTimeToBuild.get(GeodeCollecting.WANTED_ELEMENT)-1;
+            int newlastTime=lastTimeToBuild.get(GeodeCollecting.WANTED_ELEMENT);
             int costForGeode=robotBlueprints.get(GeodeCollecting.WANTED_ELEMENT).getCosts().get(robotType);
-            int time=(lastTime+1)-newlastTime;
+            int time=(lastTime)-newlastTime;
             greatestPossibleCost+=(costForGeode*time);
             lastTime=newlastTime;
         }
@@ -220,15 +220,7 @@ public class RobotFactory implements Cloneable,Comparable<RobotFactory>
 
     public int compareTo(RobotFactory other) 
     {
-        int hypothetical=maxHypothetical-other.maxHypothetical;
-        if (hypothetical==0)
-        {
-            if(hashCode()>other.hashCode() )
-            {
-                hypothetical++;
-            }
-        }
-        return hypothetical;
+        return maxHypothetical-other.maxHypothetical;
     }
 
     public int getMaxHyp()

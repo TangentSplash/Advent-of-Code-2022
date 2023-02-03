@@ -78,11 +78,11 @@ public class Blueprint
             }
             else if(type.equals(CLAY))
             {
-                lastTimeToBuild.put(type,TIME_NEEDED_AFTER_BUILD_CLAY-1);   //TODO Remove-1
+                lastTimeToBuild.put(type,TIME_NEEDED_AFTER_BUILD_CLAY);
             }
             else
             {
-                lastTimeToBuild.put(type,TIME_NEEDED_AFTER_BUILD_OTHER-1);
+                lastTimeToBuild.put(type,TIME_NEEDED_AFTER_BUILD_OTHER);
             }
         }
     }
