@@ -1,10 +1,10 @@
 import java.util.*;
 
-public class Monkey 
+public class ShoutingMonkey 
 {
     private String name;
     private String otherMonkey1,otherMonkey2;
-    private Monkey monkey1,monkey2;
+    private ShoutingMonkey monkey1,monkey2;
     private int operation;
     private long number;
     private boolean numberCalculated;
@@ -15,7 +15,7 @@ public class Monkey
     private final int SUBTRACT=2;
     private final int DIVIDE=3;
 
-    public Monkey(String name, String otherMonkey1,String operation, String otherMonkey2)
+    public ShoutingMonkey(String name, String otherMonkey1,String operation, String otherMonkey2)
     {
         this.name=name;
         this.otherMonkey1=otherMonkey1;
@@ -43,7 +43,7 @@ public class Monkey
         this.pathToHuman=false;
     }
 
-    public Monkey(String name,int number)
+    public ShoutingMonkey(String name,int number)
     {
         this.name=name;
         this.number=number;
@@ -51,7 +51,7 @@ public class Monkey
         this.pathToHuman=false;
     }
 
-    public long getNumber(Map<String,Monkey> monkies)
+    public long getNumber(Map<String,ShoutingMonkey> monkies)
     {
         if(numberCalculated)
         {
@@ -128,8 +128,8 @@ public class Monkey
     {
         int newOperation=Math.floorMod(operation+2, 4); //Get the inverse operation
 
-        Monkey computedMonkey=null;
-        Monkey xMonkey=null;
+        ShoutingMonkey computedMonkey=null;
+        ShoutingMonkey xMonkey=null;
         
         long num1=-1,num2=-1;
         long newNumber=-1;

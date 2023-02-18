@@ -7,17 +7,17 @@ import java.util.*;
 
 public class NumberYelling 
 {
-    private Map<String,Monkey> monkeys;
+    private Map<String,ShoutingMonkey> monkeys;
     public static final String START="root";
     public static final String HUMAN="humn";
-    private Monkey rootMonkey;
+    private ShoutingMonkey rootMonkey;
 
     public NumberYelling () throws Exception
     {
         File inputFile = new File("Day 21/input.txt");
         Scanner input = new Scanner(inputFile);
 
-        monkeys=new HashMap<String,Monkey>();
+        monkeys=new HashMap<String,ShoutingMonkey>();
         interpretInput(input);
 
         long number=rootMonkey.getNumber(monkeys);
@@ -35,12 +35,12 @@ public class NumberYelling
             String[] info=line.split(": ");
             String name=info[0];
             info=info[1].split(" ");
-            Monkey monkey;
+            ShoutingMonkey monkey;
 
             if(info.length==1)
             {
                 int number=Integer.parseInt(info[0]);
-                monkey=new Monkey(name,number);
+                monkey=new ShoutingMonkey(name,number);
             }
             else
             {
@@ -48,7 +48,7 @@ public class NumberYelling
                 String othermonkey2=info[2];
                 String operation=info[1];
 
-                monkey=new Monkey(name,othermonkey1,operation,othermonkey2);
+                monkey=new ShoutingMonkey(name,othermonkey1,operation,othermonkey2);
             }
             monkeys.put(name,monkey);
 
